@@ -10,7 +10,7 @@
 #define BAVA_MAX_PAYLOAD 255 //Maximum payload size for the bava message
 
 //BAVA COMMANDS
-#define BAVA_READ_REQ 0X01 //Command to read remote variable 
+#define BAVA_READ 0X01 //Command to read remote variable 
 #define BAVA_READ_RESP 0x81
 #define BAVA_WRITE 0X02 //Command to write/update the remote variable
 #define BAVA_WRITE_ACK 0x82 //Acknowledgement to the updation
