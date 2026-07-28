@@ -2,7 +2,8 @@
 
 extern uint16_t bava_calculate_crc(uint8_t cmd, uint8_t id, uint8_t len, uint8_t *payload);
 extern void bava_internal_update(bava_handle_t* bava_handle,uint8_t id,uint8_t* payload,uint8_t size);
-
+extern void bava_cmd_read_request(bava_handle_t* bava_handle,uint8_t id);
+extern void bava_cmd_write_ack(bava_handle_t* bava_handle,uint8_t id);
 
 //Process the incoming byte
 void bava_process_byte(bava_handle_t* bava_handle,uint8_t byte)
@@ -85,9 +86,20 @@ void bava_process_byte(bava_handle_t* bava_handle,uint8_t byte)
              if(incoming_crc == calculated_crc){
                if(bava_handle->rx_cmd == BAVA_WRITE){
                     bava_internal_update(&bava_handle,bava_handle->rx_id,bava_handle->rx_payload,bava_handle->rx_len);
+                    bava_cmd_write_ack(bava_handle,bava_handle->rx_id);
                }
                else if (bava_handle->rx_cmd == BAVA_READ) {
-                    // TODO: Trigger sending a READ_RESP back to the sender
+                    bava_cmd_read_request(bava_handle,bava_handle->rx_id);
+                }
+               else if (bava_handle->rx_cmd == BAVA_WRITE_ACK || bava_handle->rx_cmd == BAVA_READ_RESP) {
+                    // We got an ACK or a requested value back! 
+                    // Clear the waiting flag so we can send the next command.
+                    if (bava_handle->is_waiting_ack && bava_handle->pending_ack_id == bava_handle->rx_id) {
+                        bava_handle->is_waiting_ack = false;
+                    }
+                    if (bava_handle->rx_cmd == BAVA_READ_RESP) {
+                        bava_internal_update_memory(bava_handle, bava_handle->rx_id, bava_handle->rx_payload, bava_handle->rx_len);
+                    }
                 }
                 // (ACKs and Responses will be handled in the TX module)
             }
