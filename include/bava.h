@@ -15,6 +15,12 @@
 #define BAVA_WRITE 0X02 //Command to write/update the remote variable
 #define BAVA_WRITE_ACK 0x82 //Acknowledgement to the updation
 
+// Define standard error codes
+#define BAVA_ERR_TIMEOUT 0x01
+
+// Define the Error Callback function signature
+typedef void (*bava_error_cb_t)(uint8_t id, uint8_t error_code);
+
 //BAVA TX CALLBACK ----> user should register the function
 typedef void (*bava_tx_cb_t)(uint8_t* data,uint16_t size);
 typedef void (*bava_lock_cb_t)(void);
@@ -56,7 +62,7 @@ typedef struct
     uint8_t rx_idx;                 // Tracks bytes read into the payload buffer
     uint8_t rx_payload[BAVA_MAX_PAYLOAD];
 
-    // Inside bava_ctx_t
+    // Inside bava_handle_t
     uint8_t pending_ack_id;      // The ID we just sent
     uint8_t pending_ack_cmd;     // Was it READ or WRITE?
     uint32_t tx_timeout_ms;      // System tick count when we sent it
@@ -67,13 +73,20 @@ typedef struct
     //ISR SYNC
     bava_lock_cb_t enter_critical;
     bava_lock_cb_t exit_critical;
+
+    // Timeout Tracking
+    uint32_t current_time_ms;  // Continuously updated by the user
+    uint32_t tx_timestamp;     // Records the exact time a packet was fired
+    uint32_t tx_timeout_ms;    // Max wait time (e.g., 50ms)
     
+    // Error Handling
+    bava_error_cb_t error_callback;
     volatile bool is_escaping;
     uint16_t incoming_crc;
 
 }bava_handle_t;
 
-typedef bava_handle_t bava_ctx_t;
+
 
 //PUBLIC API
 
