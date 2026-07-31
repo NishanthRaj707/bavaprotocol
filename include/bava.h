@@ -16,7 +16,8 @@
 #define BAVA_WRITE_ACK 0x82 //Acknowledgement to the updation
 
 //BAVA TX CALLBACK ----> user should register the function
-typedef void (*bava_tx_cb_t)(uint8_t data,uint16_t size);
+typedef void (*bava_tx_cb_t)(uint8_t* data,uint16_t size);
+typedef void (*bava_lock_cb_t)(void);
 
 //BAVA VARIABLE STORAGE STRUCTURE
 typedef struct 
@@ -24,7 +25,7 @@ typedef struct
     uint8_t id;
     void* var_ptr;
     uint8_t size;
-    bool updated;
+    volatile bool updated;
 }bava_var_t;
 
 
@@ -48,7 +49,7 @@ typedef struct
     bava_var_t variables[BAVA_MAX_VARIABLES]; //Collection of variables stored
     uint8_t var_count;
     // Rx State Machine tracking
-    bava_rx_state_t rx_state;
+    volatile bava_rx_state_t rx_state;
     uint8_t rx_cmd;
     uint8_t rx_id;
     uint8_t rx_len;
@@ -59,11 +60,20 @@ typedef struct
     uint8_t pending_ack_id;      // The ID we just sent
     uint8_t pending_ack_cmd;     // Was it READ or WRITE?
     uint32_t tx_timeout_ms;      // System tick count when we sent it
-    bool is_waiting_ack;         // Blocks new TX until true or timeout
+    volatile bool is_waiting_ack; // Blocks new TX until true or timeout
+
+    uint8_t tx_buffer[550];
+
+    //ISR SYNC
+    bava_lock_cb_t enter_critical;
+    bava_lock_cb_t exit_critical;
     
-    bool is_escaping;
+    volatile bool is_escaping;
+    uint16_t incoming_crc;
 
 }bava_handle_t;
+
+typedef bava_handle_t bava_ctx_t;
 
 //PUBLIC API
 
@@ -78,6 +88,8 @@ void bava_process_byte(bava_handle_t *bava_handle,uint8_t byte);
 
 //Send data 
 void bava_send_write(bava_handle_t* bava_handle,uint8_t id);
+
+void bava_send_raw_write(bava_handle_t* bava_handle,uint8_t id,const uint8_t* pointer,uint8_t len);
 
 //Send a read request 
 void bava_send_read(bava_handle_t* bava_handle,uint8_t id);

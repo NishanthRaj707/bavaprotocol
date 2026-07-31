@@ -1,0 +1,6 @@
+version: "1.0.0"
+description: "BAVA - Bidirectional Asynchronous Versatile Architecture Protocol"
+url: "https://github.com/NishanthRaj707/bavaprotocol"
+dependencies:
+  idf:
+    version: ">=4.1.0"

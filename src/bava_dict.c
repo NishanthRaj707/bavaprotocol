@@ -43,7 +43,7 @@ int8_t bava_register_var(bava_handle_t* bava_handle,uint8_t id,void* variable_po
 //Check the updated status
 bool bava_var_updated(bava_handle_t* bava_handle,uint8_t id)
 {
-    for(uint8_t i=0;i<=bava_handle->var_count;i++)
+    for(uint8_t i=0;i<bava_handle->var_count;i++)
     {
         if(bava_handle->variables[i].id == id)
         {
@@ -56,7 +56,7 @@ bool bava_var_updated(bava_handle_t* bava_handle,uint8_t id)
 //Clear the update status
 void bava_var_clear_update_status(bava_handle_t* bava_handle,uint8_t id)
 {
-    for(uint8_t i = 0;i<=bava_handle->var_count;i++)
+    for(uint8_t i = 0;i<bava_handle->var_count;i++)
     {
         if(bava_handle->variables[i].id == id)
         {
@@ -67,19 +67,27 @@ void bava_var_clear_update_status(bava_handle_t* bava_handle,uint8_t id)
 }
 
 //Internal update function
-void bava_internal_update(bava_handle_t* bava_handle,uint8_t id,uint8_t* payload,uint8_t size)
+void bava_internal_update(bava_handle_t* bava_handle,uint8_t id,const uint8_t* payload,uint8_t size)
 {
-    for(uint8_t i = 0;i<=bava_handle->var_count;i++)
+    for(uint8_t i = 0;i<bava_handle->var_count;i++)
     {
-        if(bava_handle->variables[i].id == id && bava_handle->variables[i].size == payload)
+        if(bava_handle->variables[i].id == id && bava_handle->variables[i].size == size)
         {
+            if(bava_handle->enter_critical != NULL)
+            {
+                bava_handle->enter_critical();
+            }
+
             memcpy(bava_handle->variables[i].var_ptr,payload,size);
 
             bava_handle->variables[i].updated = true;
-
+            
+            if(bava_handle->exit_critical != NULL)
+            {
+                bava_handle->exit_critical();
+            }
+            
             return;
         }
     }
 }
-
-
