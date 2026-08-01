@@ -65,7 +65,6 @@ typedef struct
     // Inside bava_handle_t
     uint8_t pending_ack_id;      // The ID we just sent
     uint8_t pending_ack_cmd;     // Was it READ or WRITE?
-    uint32_t tx_timeout_ms;      // System tick count when we sent it
     volatile bool is_waiting_ack; // Blocks new TX until true or timeout
 
     uint8_t tx_buffer[550];
@@ -89,6 +88,9 @@ typedef struct
 
 
 //PUBLIC API
+
+//System tick
+void bava_tick(bava_handle_t* bava_handle,uint32_t system_tick_ms);
 
 //Initalise the Bava system
 void bava_init(bava_handle_t* bava_handle,bava_tx_cb_t bava_tx_callback);

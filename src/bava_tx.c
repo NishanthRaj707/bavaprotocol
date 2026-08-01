@@ -10,8 +10,8 @@ void bava_tick(bava_handle_t* bava_handle,uint32_t system_tick_ms)
     {
         bava_handle->is_waiting_ack = false;
 
-        if (handle->error_callback != NULL) {
-                handle->error_callback(handle->pending_ack_id, BAVA_ERR_TIMEOUT);
+        if (bava_handle->error_callback != NULL) {
+                bava_handle->error_callback(bava_handle->pending_ack_id, BAVA_ERR_TIMEOUT);
             }
 
     }
@@ -64,10 +64,10 @@ static void bava_internal_send_packet(bava_handle_t *bava_handle, uint8_t cmd, u
     
     
     if (cmd == BAVA_CMD_WRITE || cmd == BAVA_CMD_READ_REQ) {
-        handle->is_waiting_ack = true;
-        handle->pending_ack_id = id;
-        handle->pending_ack_cmd = cmd;
-        handle->tx_timestamp = handle->current_time_ms; // Lock in the start time
+        bava_handle->is_waiting_ack = true;
+        bava_handle->pending_ack_id = id;
+        bava_handle->pending_ack_cmd = cmd;
+        bava_handle->tx_timestamp = bava_handle->current_time_ms; // Lock in the start time
     }
 }
 

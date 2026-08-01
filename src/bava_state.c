@@ -1,7 +1,7 @@
 #include "bava.h"
 
 extern uint16_t bava_calculate_crc(uint8_t cmd, uint8_t id, uint8_t len, uint8_t *payload);
-extern void bava_internal_update(bava_handle_t* bava_handle,uint8_t id,uint8_t* payload,uint8_t size);
+extern void bava_internal_update(bava_handle_t* bava_handle,uint8_t id,const uint8_t* payload,uint8_t size);
 extern void bava_cmd_read_request(bava_handle_t* bava_handle,uint8_t id);
 extern void bava_cmd_write_ack(bava_handle_t* bava_handle,uint8_t id);
 

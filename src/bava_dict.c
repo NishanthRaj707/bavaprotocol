@@ -19,6 +19,11 @@ void bava_init(bava_handle_t* bava_handle,bava_tx_cb_t bava_tx_callback)
     bava_handle->is_escaping = false;
     bava_handle->is_waiting_ack = false;
 
+    bava_handle->tx_timestamp = 0;
+    bava_handle->current_time_ms = 0;
+    bava_handle->error_callback = NULL;
+    bava_handle->enter_critical = NULL;
+    bava_handle->exit_critical = NULL;
 }
 
 //Registering the variables
