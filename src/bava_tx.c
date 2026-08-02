@@ -6,7 +6,7 @@ void bava_tick(bava_handle_t* bava_handle,uint32_t system_tick_ms)
 {
     bava_handle->current_time_ms = system_tick_ms;
 
-    if(bava_handle->is_waiting_ack && (bava_handle->current_time_ms - bava_handle->tx_timestamp)>=bava_handle->tx_timeout_ms)
+    if(bava_handle->is_waiting_ack && (bava_handle->current_time_ms - bava_handle->tx_timestamp)>= BAVA_TX_TIMEOUT)
     {
         bava_handle->is_waiting_ack = false;
 

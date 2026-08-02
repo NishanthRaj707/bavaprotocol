@@ -12,6 +12,14 @@
 #define BAVA_MAX_PAYLOAD 32 //Maximum payload size for the bava message
 #endif
 
+#ifndef BAVA_RX_TIMEOUT
+#define BAVA_RX_TIMEOUT 100 // Timeout for receiving data (in ms)
+#endif
+
+#ifndef BAVA_TX_TIMEOUT
+#define BAVA_TX_TIMEOUT 100 // Timeout for waiting for an acknowledgment (in ms)
+#endif
+
 //BAVA COMMANDS
 #define BAVA_READ 0X01 //Command to read remote variable 
 #define BAVA_READ_RESP 0x81
@@ -80,7 +88,7 @@ typedef struct
     // Timeout Tracking
     uint32_t current_time_ms;  // Continuously updated by the user
     uint32_t tx_timestamp;     // Records the exact time a packet was fired
-    uint32_t tx_timeout_ms;    // Max wait time (e.g., 50ms)
+    
     uint32_t start_time;
     // Error Handling
     bava_error_cb_t error_callback;

@@ -15,7 +15,7 @@ void bava_init(bava_handle_t* bava_handle,bava_tx_cb_t bava_tx_callback)
         
     bava_handle->pending_ack_id=0;
     bava_handle->pending_ack_cmd=0;
-    bava_handle->tx_timeout_ms = 0;
+   
     bava_handle->is_escaping = false;
     bava_handle->is_waiting_ack = false;
     bava_handle->start_time = 0;
