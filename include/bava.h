@@ -7,7 +7,10 @@
 
 //CONFIGURATION
 #define BAVA_MAX_VARIABLES 32  //Maximum number of variables in the BAVA system
-#define BAVA_MAX_PAYLOAD 255 //Maximum payload size for the bava message
+
+#ifndef BAVA_MAX_PAYLOAD
+#define BAVA_MAX_PAYLOAD 32 //Maximum payload size for the bava message
+#endif
 
 //BAVA COMMANDS
 #define BAVA_READ 0X01 //Command to read remote variable 
@@ -16,7 +19,8 @@
 #define BAVA_WRITE_ACK 0x82 //Acknowledgement to the updation
 
 // Define standard error codes
-#define BAVA_ERR_TIMEOUT 0x01
+#define BAVA_ERR_TIMEOUT 0x11
+
 
 // Define the Error Callback function signature
 typedef void (*bava_error_cb_t)(uint8_t id, uint8_t error_code);
@@ -77,7 +81,7 @@ typedef struct
     uint32_t current_time_ms;  // Continuously updated by the user
     uint32_t tx_timestamp;     // Records the exact time a packet was fired
     uint32_t tx_timeout_ms;    // Max wait time (e.g., 50ms)
-    
+    uint32_t start_time;
     // Error Handling
     bava_error_cb_t error_callback;
     volatile bool is_escaping;

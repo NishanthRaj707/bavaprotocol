@@ -18,7 +18,7 @@ void bava_init(bava_handle_t* bava_handle,bava_tx_cb_t bava_tx_callback)
     bava_handle->tx_timeout_ms = 0;
     bava_handle->is_escaping = false;
     bava_handle->is_waiting_ack = false;
-
+    bava_handle->start_time = 0;
     bava_handle->tx_timestamp = 0;
     bava_handle->current_time_ms = 0;
     bava_handle->error_callback = NULL;
@@ -83,7 +83,20 @@ void bava_internal_update(bava_handle_t* bava_handle,uint8_t id,const uint8_t* p
                 bava_handle->enter_critical();
             }
 
-            memcpy(bava_handle->variables[i].var_ptr,payload,size);
+            if(size == 2)
+            {
+                uint16_t temp = ntohs(*(uint16_t*)payload);
+                memcpy(bava_handle->variables[i].var_ptr,&temp,2);
+            }
+            else if(size == 4)
+            {
+                uint32_t temp = ntohl(*(uint32_t*)payload);
+                memcpy(bava_handle->variables[i].var_ptr,&temp,4);
+            }
+            else
+            {
+                memcpy(bava_handle->variables[i].var_ptr,payload,size);
+            }
 
             bava_handle->variables[i].updated = true;
             

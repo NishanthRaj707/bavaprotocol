@@ -63,7 +63,7 @@ static void bava_internal_send_packet(bava_handle_t *bava_handle, uint8_t cmd, u
     }
     
     
-    if (cmd == BAVA_CMD_WRITE || cmd == BAVA_CMD_READ_REQ) {
+    if (cmd == BAVA_WRITE || cmd == BAVA_READ) {
         bava_handle->is_waiting_ack = true;
         bava_handle->pending_ack_id = id;
         bava_handle->pending_ack_cmd = cmd;
@@ -77,10 +77,26 @@ void bava_send_write(bava_handle_t* bava_handle, uint8_t id)
     {
         if (bava_handle->variables[i].id == id)
         {
+            uint8_t tx_buffer[BAVA_MAX_PAYLOAD];
             const uint8_t* payload = (const uint8_t *)bava_handle->variables[i].var_ptr;
             uint8_t len = bava_handle->variables[i].size;
 
-            bava_internal_send_packet(bava_handle, BAVA_WRITE, id, payload, len);
+            if(len == 2)
+            {
+                uint16_t temp =htons(*(uint16_t*)payload);
+                memcpy(tx_buffer,&temp,2);
+            }
+            else if(len == 4)
+            {
+                uint32_t temp = htonl(*(uint32_t*)payload);
+                memcpy(tx_buffer,&temp,4);
+            }
+            else
+            {
+                memcpy(tx_buffer,payload,1);    
+            }
+
+            bava_internal_send_packet(bava_handle, BAVA_WRITE, id, tx_buffer, len);
             return;
         }
     }

@@ -7,6 +7,15 @@ extern void bava_cmd_write_ack(bava_handle_t* bava_handle,uint8_t id);
 
 void bava_process_byte(bava_handle_t* bava_handle, uint8_t byte)
 {
+    if(bava_handle->rx_state != BAVA_STATE_WAIT_SYNC1 && bava_handle->start_time > bava_handle->tx_timeout_ms)
+    {
+        bava_handle->rx_state = BAVA_STATE_WAIT_SYNC1;
+        if(bava_handle->error_callback != NULL)
+        {
+            bava_handle->error_callback(0,BAVA_ERR_TIMEOUT);
+        }
+    }
+    
     if(byte == 0xAA)
     {
         bava_handle->rx_state = BAVA_STATE_WAIT_SYNC2;
@@ -53,16 +62,8 @@ void bava_process_byte(bava_handle_t* bava_handle, uint8_t byte)
         case BAVA_STATE_READ_LEN:
              bava_handle->rx_len = byte;
              bava_handle->rx_idx = 0;
-
-             if(bava_handle->rx_len > BAVA_MAX_PAYLOAD){
-                bava_handle->rx_state = BAVA_STATE_WAIT_SYNC1;
-             }
-             else if(bava_handle->rx_len == 0){
-                bava_handle->rx_state = BAVA_STATE_READ_CRC1;
-             }
-             else{
-                bava_handle->rx_state = BAVA_STATE_READ_PAYLOAD;
-             }
+             bava_handle->rx_state = BAVA_STATE_WAIT_SYNC1;
+             
              break;
         
         case BAVA_STATE_READ_PAYLOAD:
