@@ -43,7 +43,7 @@ static uint16_t bava_crc_update(uint16_t crc, uint8_t data) {
  * @param payload Pointer to the raw data array
  * @return uint16_t The calculated checksum
  */
-uint16_t bava_calculate_crc(uint8_t cmd, uint8_t id, uint8_t len, uint8_t *payload) {
+uint16_t bava_calculate_crc(uint8_t cmd, uint8_t id, uint8_t len,const uint8_t *payload) {
     
     // Standard initialization value for CCITT
     uint16_t crc = 0xFFFF;

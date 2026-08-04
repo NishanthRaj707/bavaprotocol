@@ -1,35 +1,32 @@
 #include "bava.h"
 #include <string.h>
 
-//Initialization function
-void bava_init(bava_handle_t* bava_handle,bava_tx_cb_t bava_tx_callback)
+// Initialization function
+void bava_init(bava_handle_t* bava_handle, bava_tx_cb_t bava_tx_callback)
 {
+    memset(bava_handle, 0, sizeof(bava_handle_t));
     bava_handle->tx_callback = bava_tx_callback;
-    bava_handle->var_count=0;
-
     bava_handle->rx_state = BAVA_STATE_WAIT_SYNC1;
-    bava_handle->rx_idx = 0;
-    bava_handle->rx_cmd = 0;
-    bava_handle->rx_id = 0;
-    bava_handle->rx_len = 0;
-        
-    bava_handle->pending_ack_id=0;
-    bava_handle->pending_ack_cmd=0;
-   
-    bava_handle->is_escaping = false;
-    bava_handle->is_waiting_ack = false;
-    bava_handle->start_time = 0;
-    bava_handle->tx_timestamp = 0;
-    bava_handle->current_time_ms = 0;
-    bava_handle->error_callback = NULL;
+
+#ifdef ESP_PLATFORM
+    bava_handle->tx_mutex = xSemaphoreCreateMutex();
+    portMUX_TYPE mux = portMUX_INITIALIZER_UNLOCKED;
+    bava_handle->rx_mux = mux;
+#elif defined(USE_HAL_DRIVER) && defined(osCMSIS)
+    const osMutexAttr_t tx_mutex_attr = { "bava_tx_mutex", osMutexPrioInherit, NULL, 0U };
+    bava_handle->tx_mutex = osMutexNew(&tx_mutex_attr);
+#else
+    atomic_flag_clear(&bava_handle->tx_lock);
+    bava_handle->yield_callback = NULL;
     bava_handle->enter_critical = NULL;
     bava_handle->exit_critical = NULL;
+#endif
 }
 
-//Registering the variables
-int8_t bava_register_var(bava_handle_t* bava_handle,uint8_t id,void* variable_pointer,uint8_t variable_size)
+// Registering the variables
+int8_t bava_register_var(bava_handle_t* bava_handle, uint8_t id, void* variable_pointer, uint8_t variable_size)
 {
-    if(bava_handle->var_count>=BAVA_MAX_VARIABLES)
+    if (bava_handle->var_count >= BAVA_MAX_VARIABLES)
     {
        return -1;
     }
@@ -45,12 +42,12 @@ int8_t bava_register_var(bava_handle_t* bava_handle,uint8_t id,void* variable_po
     return 0;
 }
 
-//Check the updated status
-bool bava_var_updated(bava_handle_t* bava_handle,uint8_t id)
+// Check the updated status
+bool bava_var_updated(bava_handle_t* bava_handle, uint8_t id)
 {
-    for(uint8_t i=0;i<bava_handle->var_count;i++)
+    for (uint8_t i = 0; i < bava_handle->var_count; i++)
     {
-        if(bava_handle->variables[i].id == id)
+        if (bava_handle->variables[i].id == id)
         {
             return bava_handle->variables[i].updated;  
         }
@@ -58,12 +55,12 @@ bool bava_var_updated(bava_handle_t* bava_handle,uint8_t id)
     return false;
 }
 
-//Clear the update status
-void bava_var_clear_update_status(bava_handle_t* bava_handle,uint8_t id)
+// Clear the update status
+void bava_var_clear_update_status(bava_handle_t* bava_handle, uint8_t id)
 {
-    for(uint8_t i = 0;i<bava_handle->var_count;i++)
+    for (uint8_t i = 0; i < bava_handle->var_count; i++)
     {
-        if(bava_handle->variables[i].id == id)
+        if (bava_handle->variables[i].id == id)
         {
             bava_handle->variables[i].updated = false;
             return;
@@ -71,40 +68,55 @@ void bava_var_clear_update_status(bava_handle_t* bava_handle,uint8_t id)
     }
 }
 
-//Internal update function
-void bava_internal_update(bava_handle_t* bava_handle,uint8_t id,const uint8_t* payload,uint8_t size)
+// Internal update function
+void bava_internal_update(bava_handle_t* bava_handle, uint8_t id, const uint8_t* payload, uint8_t size)
 {
-    for(uint8_t i = 0;i<bava_handle->var_count;i++)
+    for (uint8_t i = 0; i < bava_handle->var_count; i++)
     {
-        if(bava_handle->variables[i].id == id && bava_handle->variables[i].size == size)
+        if (bava_handle->variables[i].id == id && bava_handle->variables[i].size == size)
         {
-            if(bava_handle->enter_critical != NULL)
-            {
-                bava_handle->enter_critical();
-            }
+        // 1. Enter Critical Section (Directive 3: ISR-safe critical section)
+        #ifdef ESP_PLATFORM
+            portENTER_CRITICAL_ISR(&(bava_handle->rx_mux));
+        #elif defined(USE_HAL_DRIVER) && defined(osCMSIS)
+            UBaseType_t uxSavedInterruptStatus = taskENTER_CRITICAL_FROM_ISR();
+        #elif defined(USE_HAL_DRIVER)
+            __disable_irq();
+        #else
+            if (bava_handle->enter_critical != NULL) bava_handle->enter_critical();
+        #endif
 
-            if(size == 2)
+            // Directive 1: Safe memcpy to local aligned variables before endianness conversion
+            if (size == 2)
             {
-                uint16_t temp = ntohs(*(uint16_t*)payload);
-                memcpy(bava_handle->variables[i].var_ptr,&temp,2);
+                uint16_t temp_val;
+                memcpy(&temp_val, payload, sizeof(temp_val));
+                temp_val = bava_ntohs(temp_val);
+                memcpy(bava_handle->variables[i].var_ptr, &temp_val, sizeof(temp_val));
             }
-            else if(size == 4)
+            else if (size == 4)
             {
-                uint32_t temp = ntohl(*(uint32_t*)payload);
-                memcpy(bava_handle->variables[i].var_ptr,&temp,4);
+                uint32_t temp_val;
+                memcpy(&temp_val, payload, sizeof(temp_val));
+                temp_val = bava_ntohl(temp_val);
+                memcpy(bava_handle->variables[i].var_ptr, &temp_val, sizeof(temp_val));
             }
             else
             {
-                memcpy(bava_handle->variables[i].var_ptr,payload,size);
+                memcpy(bava_handle->variables[i].var_ptr, payload, size);
             }
 
             bava_handle->variables[i].updated = true;
             
-            if(bava_handle->exit_critical != NULL)
-            {
-                bava_handle->exit_critical();
-            }
-            
+        #ifdef ESP_PLATFORM
+            portEXIT_CRITICAL_ISR(&(bava_handle->rx_mux));
+        #elif defined(USE_HAL_DRIVER) && defined(osCMSIS)
+            taskEXIT_CRITICAL_FROM_ISR(uxSavedInterruptStatus);
+        #elif defined(USE_HAL_DRIVER)
+            __enable_irq();
+        #else
+            if (bava_handle->exit_critical != NULL) bava_handle->exit_critical();
+        #endif
             return;
         }
     }
