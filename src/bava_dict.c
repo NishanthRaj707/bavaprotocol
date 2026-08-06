@@ -15,6 +15,9 @@ void bava_init(bava_handle_t* bava_handle, bava_tx_cb_t bava_tx_callback)
 #elif defined(USE_HAL_DRIVER) && defined(osCMSIS)
     const osMutexAttr_t tx_mutex_attr = { "bava_tx_mutex", osMutexPrioInherit, NULL, 0U };
     bava_handle->tx_mutex = osMutexNew(&tx_mutex_attr);
+#elif defined(ARDUINO)
+    atomic_flag_clear(&bava_handle->tx_lock);
+    bava_handle->yield_callback = NULL;
 #else
     atomic_flag_clear(&bava_handle->tx_lock);
     bava_handle->yield_callback = NULL;
@@ -75,18 +78,20 @@ void bava_internal_update(bava_handle_t* bava_handle, uint8_t id, const uint8_t*
     {
         if (bava_handle->variables[i].id == id && bava_handle->variables[i].size == size)
         {
-        // 1. Enter Critical Section (Directive 3: ISR-safe critical section)
+        // 1. Enter Critical Section
         #ifdef ESP_PLATFORM
             portENTER_CRITICAL_ISR(&(bava_handle->rx_mux));
         #elif defined(USE_HAL_DRIVER) && defined(osCMSIS)
             UBaseType_t uxSavedInterruptStatus = taskENTER_CRITICAL_FROM_ISR();
         #elif defined(USE_HAL_DRIVER)
             __disable_irq();
+        #elif defined(ARDUINO)
+            noInterrupts();
         #else
             if (bava_handle->enter_critical != NULL) bava_handle->enter_critical();
         #endif
 
-            // Directive 1: Safe memcpy to local aligned variables before endianness conversion
+            // Safe memcpy to local aligned variables before endianness conversion
             if (size == 2)
             {
                 uint16_t temp_val;
@@ -114,6 +119,8 @@ void bava_internal_update(bava_handle_t* bava_handle, uint8_t id, const uint8_t*
             taskEXIT_CRITICAL_FROM_ISR(uxSavedInterruptStatus);
         #elif defined(USE_HAL_DRIVER)
             __enable_irq();
+        #elif defined(ARDUINO)
+            interrupts();
         #else
             if (bava_handle->exit_critical != NULL) bava_handle->exit_critical();
         #endif

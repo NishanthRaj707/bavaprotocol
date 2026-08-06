@@ -7,6 +7,9 @@
     #include "freertos/task.h"
 #elif defined(USE_HAL_DRIVER) && defined(osCMSIS) 
     #include "cmsis_os.h" 
+#elif defined(ARDUINO)
+    #include <Arduino.h>
+    #include <stdatomic.h>
 #else
     #include <stdatomic.h>
 #endif
@@ -96,7 +99,7 @@ typedef struct
     uint8_t tx_buffer[((BAVA_MAX_PAYLOAD + 5) * 2) + 2];
 
     // Timeout Tracking
-    uint32_t current_time_ms;  // Continuously updated by the user
+    uint32_t current_time_ms;  // Continuously updated by the user or millis()
     uint32_t tx_timestamp;     // Records the exact time a packet was fired
     uint32_t start_time;       // Records start time for RX frame timeout
 
@@ -110,6 +113,9 @@ typedef struct
     portMUX_TYPE rx_mux;        // Spinlock for the RX critical section
 #elif defined(USE_HAL_DRIVER) && defined(osCMSIS)
     osMutexId_t tx_mutex;       // STM32 CMSIS-RTOS Mutex
+#elif defined(ARDUINO)
+    atomic_flag tx_lock;        // Atomic lock for Arduino targets
+    void (*yield_callback)(void);
 #else
     atomic_flag tx_lock;
     // Allows bare-metal devs to pass a custom delay or watchdog reset

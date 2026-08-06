@@ -1,21 +1,56 @@
 #include "bava.h"
+#include "bava_tx.h"
 #include <string.h>
 
 extern uint16_t bava_calculate_crc(uint8_t cmd, uint8_t id, uint8_t len, const uint8_t *payload);
 
-void bava_tick(bava_handle_t* bava_handle, uint32_t system_tick_ms)
+/* ========================================================================== */
+/*                       CENTRALIZED MUTEX / LOCK HELPERS                     */
+/* ========================================================================== */
+
+static inline void bava_tx_lock(bava_handle_t *bava_handle)
 {
-    bava_handle->current_time_ms = system_tick_ms;
-
-    if (bava_handle->is_waiting_ack && (bava_handle->current_time_ms - bava_handle->tx_timestamp) >= BAVA_TX_TIMEOUT)
-    {
-        bava_handle->is_waiting_ack = false;
-
-        if (bava_handle->error_callback != NULL) {
-            bava_handle->error_callback(bava_handle->pending_ack_id, BAVA_ERR_TIMEOUT);
+#ifdef ESP_PLATFORM
+    xSemaphoreTake(bava_handle->tx_mutex, portMAX_DELAY);
+#elif defined(USE_HAL_DRIVER) && defined(osCMSIS)
+    osMutexAcquire(bava_handle->tx_mutex, osWaitForever);
+#elif defined(ARDUINO)
+    uint32_t spin_count = 0;
+    while (atomic_flag_test_and_set(&bava_handle->tx_lock)) {
+        yield();
+        if (++spin_count > 1000000UL) {
+            break;
         }
     }
+#else
+    uint32_t spin_count = 0;
+    while (atomic_flag_test_and_set(&bava_handle->tx_lock)) {
+        if (bava_handle->yield_callback != NULL) {
+            bava_handle->yield_callback();
+        }
+        if (++spin_count > 1000000UL) { // Prevent WDT starvation
+            break;
+        }
+    }
+#endif
 }
+
+static inline void bava_tx_unlock(bava_handle_t *bava_handle)
+{
+#ifdef ESP_PLATFORM
+    xSemaphoreGive(bava_handle->tx_mutex);
+#elif defined(USE_HAL_DRIVER) && defined(osCMSIS)
+    osMutexRelease(bava_handle->tx_mutex);
+#elif defined(ARDUINO)
+    atomic_flag_clear(&bava_handle->tx_lock);
+#else
+    atomic_flag_clear(&bava_handle->tx_lock);
+#endif
+}
+
+/* ========================================================================== */
+/*                       INTERNAL TRANSMISSION ENGINE                         */
+/* ========================================================================== */
 
 static void bava_add_escape_byte(uint8_t* buffer, uint16_t* idx, uint8_t byte)
 {
@@ -32,6 +67,9 @@ static void bava_add_escape_byte(uint8_t* buffer, uint16_t* idx, uint8_t byte)
 
 static void bava_internal_send_packet(bava_handle_t *bava_handle, uint8_t cmd, uint8_t id, const uint8_t *payload, uint8_t len)
 {
+    // 1. Acquire Centralized Hardware TX Lock BEFORE touching shared tx_buffer
+    bava_tx_lock(bava_handle);
+
     uint16_t tx_idx = 0;
 
     bava_handle->tx_buffer[tx_idx++] = BAVA_SYNC_BYTE1;
@@ -41,19 +79,57 @@ static void bava_internal_send_packet(bava_handle_t *bava_handle, uint8_t cmd, u
     bava_add_escape_byte(bava_handle->tx_buffer, &tx_idx, id);
     bava_add_escape_byte(bava_handle->tx_buffer, &tx_idx, len);
 
-    for (uint8_t i = 0; i < len; i++)
+    // Endianness handling and payload escaping safely inside locked region
+    if (len > 0 && payload != NULL)
     {
-        bava_add_escape_byte(bava_handle->tx_buffer, &tx_idx, payload[i]);
+        uint8_t formatted_payload[BAVA_MAX_PAYLOAD];
+        uint8_t payload_size = (len > BAVA_MAX_PAYLOAD) ? BAVA_MAX_PAYLOAD : len;
+
+        // Automatically convert 16-bit and 32-bit integer/float values to network byte order
+        if (payload_size == 2)
+        {
+            uint16_t temp_val;
+            memcpy(&temp_val, payload, sizeof(temp_val));
+            temp_val = bava_htons(temp_val);
+            memcpy(formatted_payload, &temp_val, sizeof(temp_val));
+        }
+        else if (payload_size == 4)
+        {
+            uint32_t temp_val;
+            memcpy(&temp_val, payload, sizeof(temp_val));
+            temp_val = bava_htonl(temp_val);
+            memcpy(formatted_payload, &temp_val, sizeof(temp_val));
+        }
+        else
+        {
+            memcpy(formatted_payload, payload, payload_size);
+        }
+
+        for (uint8_t i = 0; i < payload_size; i++)
+        {
+            bava_add_escape_byte(bava_handle->tx_buffer, &tx_idx, formatted_payload[i]);
+        }
+        
+        uint16_t crc = bava_calculate_crc(cmd, id, payload_size, formatted_payload);
+
+        uint8_t crc_low = (uint8_t)(crc & 0xFF);
+        uint8_t crc_high = (uint8_t)((crc >> 8) & 0xFF);
+
+        bava_add_escape_byte(bava_handle->tx_buffer, &tx_idx, crc_low);
+        bava_add_escape_byte(bava_handle->tx_buffer, &tx_idx, crc_high);
     }
-    
-    uint16_t crc = bava_calculate_crc(cmd, id, len, payload);
+    else
+    {
+        uint16_t crc = bava_calculate_crc(cmd, id, 0, NULL);
 
-    uint8_t crc_low = (uint8_t)(crc & 0xFF);
-    uint8_t crc_high = (uint8_t)((crc >> 8) & 0xFF);
-    
-    bava_add_escape_byte(bava_handle->tx_buffer, &tx_idx, crc_low);
-    bava_add_escape_byte(bava_handle->tx_buffer, &tx_idx, crc_high);
+        uint8_t crc_low = (uint8_t)(crc & 0xFF);
+        uint8_t crc_high = (uint8_t)((crc >> 8) & 0xFF);
 
+        bava_add_escape_byte(bava_handle->tx_buffer, &tx_idx, crc_low);
+        bava_add_escape_byte(bava_handle->tx_buffer, &tx_idx, crc_high);
+    }
+
+    // Hardware Transmission Callback execution while safely locked
     if (bava_handle->tx_callback != NULL)
     {
         bava_handle->tx_callback(bava_handle->tx_buffer, tx_idx);
@@ -63,7 +139,28 @@ static void bava_internal_send_packet(bava_handle_t *bava_handle, uint8_t cmd, u
         bava_handle->is_waiting_ack = true;
         bava_handle->pending_ack_id = id;
         bava_handle->pending_ack_cmd = cmd;
-        bava_handle->tx_timestamp = bava_handle->current_time_ms; // Lock in the start time
+        bava_handle->tx_timestamp = bava_handle->current_time_ms; // Lock in start time
+    }
+
+    // 2. Release Centralized Hardware TX Lock AFTER transmission finishes
+    bava_tx_unlock(bava_handle);
+}
+
+/* ========================================================================== */
+/*                             PUBLIC API PIPELINE                            */
+/* ========================================================================== */
+
+void bava_tick(bava_handle_t* bava_handle, uint32_t system_tick_ms)
+{
+    bava_handle->current_time_ms = system_tick_ms;
+
+    if (bava_handle->is_waiting_ack && (bava_handle->current_time_ms - bava_handle->tx_timestamp) >= BAVA_TX_TIMEOUT)
+    {
+        bava_handle->is_waiting_ack = false;
+
+        if (bava_handle->error_callback != NULL) {
+            bava_handle->error_callback(bava_handle->pending_ack_id, BAVA_ERR_TIMEOUT);
+        }
     }
 }
 
@@ -73,58 +170,11 @@ void bava_send_write(bava_handle_t* bava_handle, uint8_t id)
     {
         if (bava_handle->variables[i].id == id)
         {
-        #ifdef ESP_PLATFORM
-            xSemaphoreTake(bava_handle->tx_mutex, portMAX_DELAY); 
-        #elif defined(USE_HAL_DRIVER) && defined(osCMSIS)
-            osMutexAcquire(bava_handle->tx_mutex, osWaitForever);
-        #else
-            uint32_t spin_count = 0;
-            while (atomic_flag_test_and_set(&bava_handle->tx_lock)) {
-                if (bava_handle->yield_callback != NULL) {
-                    bava_handle->yield_callback(); 
-                }
-                if (++spin_count > 1000000UL) { // Prevent WDT starvation
-                    break;
-                }
-            }
-        #endif
-            uint8_t tx_buffer[BAVA_MAX_PAYLOAD];
             const uint8_t* payload = (const uint8_t *)bava_handle->variables[i].var_ptr;
             uint8_t len = bava_handle->variables[i].size;
 
-            if (len > BAVA_MAX_PAYLOAD) {
-                len = BAVA_MAX_PAYLOAD;
-            }
-
-            // Directive 1: Safe memcpy to local aligned variables before endianness conversion
-            if (len == 2)
-            {
-                uint16_t temp_val;
-                memcpy(&temp_val, payload, sizeof(temp_val));
-                temp_val = bava_htons(temp_val);
-                memcpy(tx_buffer, &temp_val, sizeof(temp_val));
-            }
-            else if (len == 4)
-            {
-                uint32_t temp_val;
-                memcpy(&temp_val, payload, sizeof(temp_val));
-                temp_val = bava_htonl(temp_val);
-                memcpy(tx_buffer, &temp_val, sizeof(temp_val));
-            }
-            else
-            {
-                // Directive 4: Fix payload truncation by copying full 'len' bytes
-                memcpy(tx_buffer, payload, len);    
-            }
-
-            bava_internal_send_packet(bava_handle, BAVA_WRITE, id, tx_buffer, len);
-        #ifdef ESP_PLATFORM
-            xSemaphoreGive(bava_handle->tx_mutex);
-        #elif defined(USE_HAL_DRIVER) && defined(osCMSIS)
-            osMutexRelease(bava_handle->tx_mutex);
-        #else
-            atomic_flag_clear(&bava_handle->tx_lock);
-        #endif
+            // Route through central locked transmission engine (handles endianness automatically)
+            bava_internal_send_packet(bava_handle, BAVA_WRITE, id, payload, len);
             return;
         }
     }
@@ -133,6 +183,16 @@ void bava_send_write(bava_handle_t* bava_handle, uint8_t id)
 void bava_send_read(bava_handle_t* bava_handle, uint8_t id)
 {
     bava_internal_send_packet(bava_handle, BAVA_READ, id, NULL, 0);
+}
+
+void bava_send_read_request(bava_handle_t* bava_handle, uint8_t id)
+{
+    bava_send_read(bava_handle, id);
+}
+
+void bava_send_read_response(bava_handle_t* bava_handle, uint8_t id)
+{
+    bava_cmd_read_request(bava_handle, id);
 }
 
 void bava_send_raw_write(bava_handle_t* bava_handle, uint8_t id, const uint8_t* pointer, uint8_t len)

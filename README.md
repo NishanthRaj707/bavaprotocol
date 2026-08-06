@@ -6,13 +6,14 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Platform: ESP-IDF](https://img.shields.io/badge/Platform-ESP--IDF-red.svg)](https://docs.espressif.com/projects/esp-idf/)
 [![Platform: STM32](https://img.shields.io/badge/Platform-STM32-blue.svg)](https://www.st.com/)
+[![Platform: Arduino](https://img.shields.io/badge/Platform-Arduino-00979D.svg)](https://www.arduino.cc/)
 [![Memory: 0 Dynamic Alloc](https://img.shields.io/badge/Memory-0%20Dynamic%20Alloc-brightgreen.svg)](#key-features)
 
 ---
 
 ## 🚀 Why BAVA? (Protocol Comparison)
 
-Inter-microcontroller communication often forces developers to choose between complex, heavy protocols or fragile, hand-rolled custom framing. BAVA bridges this gap by providing an **Object Dictionary architecture** specifically optimized for bare-metal and real-time operating systems (FreeRTOS, Zephyr).
+Inter-microcontroller communication often forces developers to choose between complex, heavy protocols or fragile, hand-rolled custom framing. BAVA bridges this gap by providing an **Object Dictionary architecture** specifically optimized for bare-metal, Arduino framework targets, and real-time operating systems (FreeRTOS, Zephyr).
 
 | Feature | Raw UART / Custom Framing | Modbus RTU | CANopen / Micro-CAN | Protocol Buffers / CBOR | **BAVA Protocol** |
 | :--- | :---: | :---: | :---: | :---: | :---: |
@@ -29,7 +30,7 @@ Inter-microcontroller communication often forces developers to choose between co
 
 * 🧠 **Zero Dynamic Memory Allocation**: Pure static C implementation operating without a single `malloc()` or `free()`, protecting RTOS task stacks and embedded heaps.
 * 🎯 **Fast Object Dictionary Routing**: Direct mapping between variable memory pointers and unique 8-bit IDs for fast payload matching and updates.
-* 🔒 **ISR-Safe Memory Synchronization**: Configurable `enter_critical` / `exit_critical` hardware lock callbacks eliminate torn reads and data races between hardware ISRs and application threads.
+* 🔒 **ISR-Safe Memory Synchronization**: Configurable `enter_critical` / `exit_critical` hardware lock callbacks and native Arduino `noInterrupts()`/`interrupts()` eliminate torn reads and data races between hardware ISRs and application threads.
 * 🌐 **Endian-Independent Wire Format**: Standardized bit-shift serialization ensures seamless cross-platform payload transport between Little-Endian (ESP32) and Big-Endian targets.
 * ⏱️ **Non-Blocking Timeout Engine**: Integrated state machine timer (`bava_tick()`) tracks unacknowledged frame timeouts without blocking application loops or RTOS execution contexts.
 
@@ -44,7 +45,7 @@ sequenceDiagram
     autonumber
     participant ESP32 as ESP32 (Controller)
     participant Bus as UART / SPI Bus
-    participant STM32 as STM32 (Target Node)
+    participant STM32 as STM32 / Arduino (Target Node)
 
     ESP32->>Bus: Transmit Frame [SYNC | BAVA_WRITE | ID: 0x05 | Speed: 150.0f | CRC]
     Bus->>STM32: Byte-by-byte Receive ISR (bava_process_byte)
@@ -93,6 +94,12 @@ All BAVA packets enforce byte-stuffing (`0x7D` escape character, XOR `0x20`) on 
 
 ## 🛠️ Installation & Setup
 
+### Arduino IDE / PlatformIO Integration
+For Arduino IDE or PlatformIO projects (AVR, ESP8266, ESP32, STM32duino):
+1. Copy `bava.h` and the `src/` files into your project's `src/` directory or `libraries/BAVA/`.
+2. Define or let the Arduino build framework automatically pass `-DARDUINO`.
+3. BAVA automatically maps `noInterrupts()`/`interrupts()` for critical sections, atomic locks with `yield()` for TX protection on boards like ESP8266/ESP32, and `millis()` for timestamp tracking.
+
 ### ESP-IDF Component Integration
 To use BAVA as an ESP-IDF component, clone or copy the repository into your project's `components/` directory:
 
@@ -133,7 +140,7 @@ Below is a complete production example showing how to integrate BAVA into ESP-ID
 #include "driver/uart.h"
 #include "esp_log.h"
 
-// Bava protocal header file
+// Bava protocol header file
 #include "bava.h"
 
 #define UART_PORT_NUM      UART_NUM_1
@@ -203,8 +210,6 @@ void app_main(void) {
     bava.enter_critical = esp32_enter_critical;
     bava.exit_critical  = esp32_exit_critical;
     bava.error_callback = bava_error_handler;
-    bava.tx_timeout_ms  = 150; // ACK timeout window in ms
-
 
     // Advance BAVA non-blocking timer using ESP-IDF system timestamp API
     bava_tick(&bava, (uint32_t)esp_log_timestamp());    
