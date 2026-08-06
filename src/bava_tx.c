@@ -1,5 +1,4 @@
 #include "bava.h"
-#include "bava_tx.h"
 #include <string.h>
 
 extern uint16_t bava_calculate_crc(uint8_t cmd, uint8_t id, uint8_t len, const uint8_t *payload);
@@ -183,16 +182,6 @@ void bava_send_write(bava_handle_t* bava_handle, uint8_t id)
 void bava_send_read(bava_handle_t* bava_handle, uint8_t id)
 {
     bava_internal_send_packet(bava_handle, BAVA_READ, id, NULL, 0);
-}
-
-void bava_send_read_request(bava_handle_t* bava_handle, uint8_t id)
-{
-    bava_send_read(bava_handle, id);
-}
-
-void bava_send_read_response(bava_handle_t* bava_handle, uint8_t id)
-{
-    bava_cmd_read_request(bava_handle, id);
 }
 
 void bava_send_raw_write(bava_handle_t* bava_handle, uint8_t id, const uint8_t* pointer, uint8_t len)
