@@ -1,6 +1,21 @@
 version: "1.0.0"
-description: "BAVA - Bidirectional Asynchronous Versatile Architecture Protocol"
+description: "BAVA - Bidirectional Asynchronous Versatile Architecture Protocol. O(1) zero-allocation hardware variable teleportation over UART/SPI."
 url: "https://github.com/NishanthRaj707/bavaprotocol"
+maintainers:
+  - "Nishanth Raj <https://github.com/NishanthRaj707>"
+tags:
+  - "uart"
+  - "protocol"
+  - "serialization"
+  - "embedded"
+  - "bare-metal"
+targets:
+  - esp32
+  - esp32s2
+  - esp32s3
+  - esp32c3
+  - esp32c6
+  - esp32h2
 dependencies:
   idf:
-    version: ">=4.1.0"
+    version: ">=4.3.0"
