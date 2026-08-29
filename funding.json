@@ -1,16 +1,27 @@
 {
-  "version": "1.0.1",
+  "$schema": "https://fundingjson.org/schema/v1.1.0.json",
+  "version": "v1.1.0",
   "entity": {
-    "name": "J. Nishanth Raj (BAVA)",
     "type": "individual",
-    "description": "Embedded Systems Architect and creator of the Bava Protocol.",
+    "role": "owner",
+    "name": "J. Nishanth Raj (BAVA)",
     "email": "jpnishanthraj@gmail.com",
-    "website": "https://github.com/NishanthRaj707"
+    "description": "Embedded Systems Architect and creator of the Bava Protocol.",
+    "webpageUrl": {
+      "url": "https://github.com/NishanthRaj707"
+    }
   },
   "projects": [
     {
+      "guid": "bava-protocol",
       "name": "Bava Protocol",
       "description": "An ultra-lightweight, non-blocking communication architecture designed for constrained edge-devices (like ESP32/Zephyr) in industrial IoT, drastically reducing memory fragmentation.",
+      "webpageUrl": {
+        "url": "https://github.com/NishanthRaj707/bavaprotocol"
+      },
+      "repositoryUrl": {
+        "url": "https://github.com/NishanthRaj707/bavaprotocol"
+      },
       "licenses": [
         "spdx:Apache-2.0"
       ],
@@ -20,30 +31,30 @@
         "esp-idf",
         "arduino",
         "iot",
-        "c",
+        "c-language",
         "bare-metal"
-      ],
-      "repository": "https://github.com/NishanthRaj707/bavaprotocol",
-      "urls": [
-        "https://components.espressif.com/components/nishanthraj707/bava/versions/1.0.1/readme",
-        "https://www.arduino.cc/reference/en/libraries/bava-protocol/"
       ]
     }
   ],
-  "fundingPlans": [
-    {
-      "name": "Bava Protocol v2 Hardware & Benchmarking Grant",
-      "type": "one-time",
-      "amount": 75000,
-      "currency": "INR",
-      "description": "Funding required to procure industrial-grade silicon (NXP evaluation boards, Texas Instruments Launchpads) for edge-node porting, and Raspberry Pi 5 hardware to act as a central data gateway. The budget also includes scalable assets like logic analyzers, high-speed JTAG debuggers, and cloud infrastructure to benchmark v1 and architect v2 for high-performance automation."
-    }
-  ],
-  "fundingChannels": [
-    {
-      "name": "Direct Bank Transfer (India)",
-      "type": "bank-transfer",
-      "description": "Direct transfer upon grant approval by FOSS United."
-    }
-  ]
+  "funding": {
+    "channels": [
+      {
+        "guid": "bank-transfer-in",
+        "type": "bank",
+        "address": "Direct Bank Transfer",
+        "description": "Direct transfer upon grant approval by FOSS United."
+      }
+    ],
+    "plans": [
+      {
+        "guid": "v2-hardware-benchmarking",
+        "status": "active",
+        "name": "Bava Protocol v2 Hardware & Benchmarking Grant",
+        "description": "Funding required to procure industrial-grade silicon (NXP evaluation boards, Texas Instruments Launchpads), logic analyzers, and Raspberry Pi 5 to benchmark v1 and architect v2.",
+        "amount": 75000,
+        "currency": "INR",
+        "frequency": "one-time"
+      }
+    ]
+  }
 }
