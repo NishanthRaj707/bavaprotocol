@@ -2,12 +2,15 @@
 
 > A lightweight, zero-allocation, asynchronous Object Dictionary communication protocol designed for memory-constrained microcontrollers over UART and SPI.
 
+[![Espressif Registry](https://img.shields.io/badge/Espressif-Component_Registry-E7352C.svg)](https://components.espressif.com/components/nishanthraj707/bava/versions/1.0.1/readme)
+[![Arduino Registry](https://img.shields.io/badge/Arduino-Library_Manager-00979D.svg)](https://www.arduino.cc/reference/en/libraries/bava-protocol/)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Language](https://img.shields.io/badge/Language-C99-blue.svg)](https://en.wikipedia.org/wiki/C99)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Platform: ESP-IDF](https://img.shields.io/badge/Platform-ESP--IDF-red.svg)](https://docs.espressif.com/projects/esp-idf/)
 [![Platform: STM32](https://img.shields.io/badge/Platform-STM32-blue.svg)](https://www.st.com/)
 [![Platform: Arduino](https://img.shields.io/badge/Platform-Arduino-00979D.svg)](https://www.arduino.cc/)
 [![Memory: 0 Dynamic Alloc](https://img.shields.io/badge/Memory-0%20Dynamic%20Alloc-brightgreen.svg)](#key-features)
+[![Benchmark Metrics](https://img.shields.io/badge/Benchmark-Metrics%20%26%20Profiling-brightgreen.svg)](performance.md)
 
 ---
 
@@ -33,6 +36,18 @@ Inter-microcontroller communication often forces developers to choose between co
 * 🔒 **ISR-Safe Memory Synchronization**: Configurable `enter_critical` / `exit_critical` hardware lock callbacks and native Arduino `noInterrupts()`/`interrupts()` eliminate torn reads and data races between hardware ISRs and application threads.
 * 🌐 **Endian-Independent Wire Format**: Standardized bit-shift serialization ensures seamless cross-platform payload transport between Little-Endian (ESP32) and Big-Endian targets.
 * ⏱️ **Non-Blocking Timeout Engine**: Integrated state machine timer (`bava_tick()`) tracks unacknowledged frame timeouts without blocking application loops or RTOS execution contexts.
+
+---
+
+## 📊 Benchmark Metrics & Empirical Profiling
+
+Official real-time hardware profiling data, microsecond execution latency measurements, dynamic heap allocation tracking, and physical signal integrity validation are documented in **[performance.md](performance.md)**.
+
+* ⚡ **Sub-100µs Execution Latency**: Frame creation, CRC computation, and UART FIFO push average **64.56 µs – 64.62 µs**.
+* 🧠 **Zero Heap Footprint**: **0 Bytes** dynamic memory allocated over continuous multi-second profiling runs.
+* 🧱 **Minimal Stack Usage**: Under **96 Bytes** stack high-water mark.
+
+See the complete empirical validation report in **[performance.md](performance.md)**.
 
 ---
 
@@ -94,6 +109,16 @@ All BAVA packets enforce byte-stuffing (`0x7D` escape character, XOR `0x20`) on 
 
 ## 🛠️ Installation & Setup
 
+### Installation
+
+**For ESP-IDF:**
+```bash
+idf.py add-dependency "nishanthraj707/bava"
+```
+
+**For Arduino:**
+Search for "Bava Protocol" in the Arduino IDE Library Manager.
+
 ### Arduino IDE / PlatformIO Integration
 For Arduino IDE or PlatformIO projects (AVR, ESP8266, ESP32, STM32duino):
 1. Copy `bava.h` and the `src/` files into your project's `src/` directory or `libraries/BAVA/`.
@@ -101,7 +126,7 @@ For Arduino IDE or PlatformIO projects (AVR, ESP8266, ESP32, STM32duino):
 3. BAVA automatically maps `noInterrupts()`/`interrupts()` for critical sections, atomic locks with `yield()` for TX protection on boards like ESP8266/ESP32, and `millis()` for timestamp tracking.
 
 ### ESP-IDF Component Integration
-To use BAVA as an ESP-IDF component, clone or copy the repository into your project's `components/` directory:
+To manually clone into your project's `components/` directory:
 
 ```bash
 cd my_esp32_project/components

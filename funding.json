@@ -1,0 +1,49 @@
+{
+  "version": "1.0.1",
+  "entity": {
+    "name": "J. Nishanth Raj (BAVA)",
+    "type": "individual",
+    "description": "Embedded Systems Architect and creator of the Bava Protocol.",
+    "email": "jpnishanthraj@gmail.com",
+    "website": "https://github.com/NishanthRaj707"
+  },
+  "projects": [
+    {
+      "name": "Bava Protocol",
+      "description": "An ultra-lightweight, non-blocking communication architecture designed for constrained edge-devices (like ESP32/Zephyr) in industrial IoT, drastically reducing memory fragmentation.",
+      "licenses": [
+        "spdx:Apache-2.0"
+      ],
+      "tags": [
+        "embedded",
+        "zephyr-rtos",
+        "esp-idf",
+        "arduino",
+        "iot",
+        "c",
+        "bare-metal"
+      ],
+      "repository": "https://github.com/NishanthRaj707/bavaprotocol",
+      "urls": [
+        "https://components.espressif.com/components/nishanthraj707/bava/versions/1.0.1/readme",
+        "https://www.arduino.cc/reference/en/libraries/bava-protocol/"
+      ]
+    }
+  ],
+  "fundingPlans": [
+    {
+      "name": "Bava Protocol v2 Hardware & Benchmarking Grant",
+      "type": "one-time",
+      "amount": 75000,
+      "currency": "INR",
+      "description": "Funding required to procure industrial-grade silicon (NXP evaluation boards, Texas Instruments Launchpads) for edge-node porting, and Raspberry Pi 5 hardware to act as a central data gateway. The budget also includes scalable assets like logic analyzers, high-speed JTAG debuggers, and cloud infrastructure to benchmark v1 and architect v2 for high-performance automation."
+    }
+  ],
+  "fundingChannels": [
+    {
+      "name": "Direct Bank Transfer (India)",
+      "type": "bank-transfer",
+      "description": "Direct transfer upon grant approval by FOSS United."
+    }
+  ]
+}
