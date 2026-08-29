@@ -13,6 +13,12 @@
 [![Benchmark Metrics](https://img.shields.io/badge/Benchmark-Metrics%20%26%20Profiling-brightgreen.svg)](performance.md)
 
 ---
+## 📦 Package Repositories & Registries
+
+| Ecosystem | Registry / Documentation | Installation / Quick Start |
+| :--- | :--- | :--- |
+| **Espressif IDF** | [![Espressif Component Registry](https://img.shields.io/badge/Espressif-Component%20Registry-E7352C?style=flat&logo=espressif&logoColor=white)](https://components.espressif.com/components/nishanthraj707/bava/versions/1.0.1/readme?language=en) 
+| **Arduino IDE** | [![Arduino Library](https://img.shields.io/badge/Arduino-Library%20Reference-00979D?style=flat&logo=arduino&logoColor=white)](https://www.arduino.cc/reference/en/libraries/bava-protocol/) | `Arduino IDE > Library Manager > "Bava Protocol"` |
 
 ## 🚀 Why BAVA? (Protocol Comparison)
 
