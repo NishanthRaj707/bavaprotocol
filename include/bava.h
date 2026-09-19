@@ -10,6 +10,9 @@
 #elif defined(ARDUINO)
     #include <Arduino.h>
     #include <stdatomic.h>
+#elif defined(__ZEPHYR__)
+    #include <zephyr/kernel.h>
+    #include <stdatomic.h>
 #else
     #include <stdatomic.h>
 #endif
@@ -113,6 +116,8 @@ typedef struct
     portMUX_TYPE rx_mux;        // Spinlock for the RX critical section
 #elif defined(USE_HAL_DRIVER) && defined(osCMSIS)
     osMutexId_t tx_mutex;       // STM32 CMSIS-RTOS Mutex
+#elif defined(__ZEPHYR__)
+    struct k_mutex tx_mutex;    // Zephyr RTOS Mutex
 #elif defined(ARDUINO)
     atomic_flag tx_lock;        // Atomic lock for Arduino targets
     void (*yield_callback)(void);

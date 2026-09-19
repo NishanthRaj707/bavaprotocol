@@ -13,6 +13,8 @@ static inline void bava_tx_lock(bava_handle_t *bava_handle)
     xSemaphoreTake(bava_handle->tx_mutex, portMAX_DELAY);
 #elif defined(USE_HAL_DRIVER) && defined(osCMSIS)
     osMutexAcquire(bava_handle->tx_mutex, osWaitForever);
+#elif defined(__ZEPHYR__)
+    k_mutex_lock(&bava_handle->tx_mutex, K_FOREVER);
 #elif defined(ARDUINO)
     uint32_t spin_count = 0;
     while (atomic_flag_test_and_set(&bava_handle->tx_lock)) {
@@ -40,6 +42,8 @@ static inline void bava_tx_unlock(bava_handle_t *bava_handle)
     xSemaphoreGive(bava_handle->tx_mutex);
 #elif defined(USE_HAL_DRIVER) && defined(osCMSIS)
     osMutexRelease(bava_handle->tx_mutex);
+#elif defined(__ZEPHYR__)
+    k_mutex_unlock(&bava_handle->tx_mutex);
 #elif defined(ARDUINO)
     atomic_flag_clear(&bava_handle->tx_lock);
 #else
