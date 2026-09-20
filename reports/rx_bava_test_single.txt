@@ -1,0 +1,203 @@
+/{
+    this is the output log of testing of bava protocol with the payload as single Variable
+    
+}
+
+
+I (17227) BAVA_BENCHMARK: ==================================================
+I (17257) BAVA_BENCHMARK: ==================================================
+I (17257) BAVA_BENCHMARK: [BAVA METRICS] Frame Received Successfully!
+I (17257) BAVA_BENCHMARK: -> Variable Value : 683
+I (17257) BAVA_BENCHMARK: -> Parse Latency  : 73 us
+I (17267) BAVA_BENCHMARK: -> Free Heap      : 295396 bytes (0 Leaks)
+I (17267) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (17277) BAVA_BENCHMARK: ==================================================
+I (17307) BAVA_BENCHMARK: ==================================================
+I (17307) BAVA_BENCHMARK: [BAVA METRICS] Frame Received Successfully!
+I (17307) BAVA_BENCHMARK: -> Variable Value : 684
+I (17307) BAVA_BENCHMARK: -> Parse Latency  : 73 us
+I (17317) BAVA_BENCHMARK: -> Free Heap      : 295396 bytes (0 Leaks)
+I (17317) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (17327) BAVA_BENCHMARK: ==================================================
+I (17357) BAVA_BENCHMARK: ==================================================
+I (17357) BAVA_BENCHMARK: [BAVA METRICS] Frame Received Successfully!
+I (17357) BAVA_BENCHMARK: -> Variable Value : 685
+I (17357) BAVA_BENCHMARK: -> Parse Latency  : 73 us
+I (17367) BAVA_BENCHMARK: -> Free Heap      : 295396 bytes (0 Leaks)
+I (17367) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (17377) BAVA_BENCHMARK: ==================================================
+I (17407) BAVA_BENCHMARK: ==================================================
+I (17407) BAVA_BENCHMARK: [BAVA METRICS] Frame Received Successfully!
+I (17407) BAVA_BENCHMARK: -> Variable Value : 686
+I (17407) BAVA_BENCHMARK: -> Parse Latency  : 74 us
+I (17417) BAVA_BENCHMARK: -> Free Heap      : 295396 bytes (0 Leaks)
+I (17417) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (17427) BAVA_BENCHMARK: ==================================================
+I (17457) BAVA_BENCHMARK: ==================================================
+I (17457) BAVA_BENCHMARK: [BAVA METRICS] Frame Received Successfully!
+I (17457) BAVA_BENCHMARK: -> Variable Value : 687
+I (17457) BAVA_BENCHMARK: -> Parse Latency  : 73 us
+I (17467) BAVA_BENCHMARK: -> Free Heap      : 295396 bytes (0 Leaks)
+I (17467) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (17477) BAVA_BENCHMARK: ==================================================
+I (17507) BAVA_BENCHMARK: ==================================================
+I (17507) BAVA_BENCHMARK: [BAVA METRICS] Frame Received Successfully!
+I (17507) BAVA_BENCHMARK: -> Variable Value : 688
+I (17507) BAVA_BENCHMARK: -> Parse Latency  : 73 us
+I (17517) BAVA_BENCHMARK: -> Free Heap      : 295396 bytes (0 Leaks)
+I (17517) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (17527) BAVA_BENCHMARK: ==================================================
+I (17557) BAVA_BENCHMARK: ==================================================
+I (17557) BAVA_BENCHMARK: [BAVA METRICS] Frame Received Successfully!
+I (17557) BAVA_BENCHMARK: -> Variable Value : 689
+I (17557) BAVA_BENCHMARK: -> Parse Latency  : 73 us
+I (17567) BAVA_BENCHMARK: -> Free Heap      : 295396 bytes (0 Leaks)
+I (17567) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (17577) BAVA_BENCHMARK: ==================================================
+I (17607) BAVA_BENCHMARK: ==================================================
+I (17607) BAVA_BENCHMARK: [BAVA METRICS] Frame Received Successfully!
+I (17607) BAVA_BENCHMARK: -> Variable Value : 690
+I (17607) BAVA_BENCHMARK: -> Parse Latency  : 73 us
+I (17617) BAVA_BENCHMARK: -> Free Heap      : 295396 bytes (0 Leaks)
+I (17617) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (17627) BAVA_BENCHMARK: ==================================================
+I (17657) BAVA_BENCHMARK: ==================================================
+I (17657) BAVA_BENCHMARK: [BAVA METRICS] Frame Received Successfully!
+I (17657) BAVA_BENCHMARK: -> Variable Value : 691
+I (17657) BAVA_BENCHMARK: -> Parse Latency  : 73 us
+I (17667) BAVA_BENCHMARK: -> Free Heap      : 295396 bytes (0 Leaks)
+I (17667) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (17677) BAVA_BENCHMARK: ==================================================
+I (17707) BAVA_BENCHMARK: ==================================================
+I (17707) BAVA_BENCHMARK: [BAVA METRICS] Frame Received Successfully!
+I (17707) BAVA_BENCHMARK: -> Variable Value : 692
+I (17707) BAVA_BENCHMARK: -> Parse Latency  : 73 us
+I (17717) BAVA_BENCHMARK: -> Free Heap      : 295396 bytes (0 Leaks)
+I (17717) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (17727) BAVA_BENCHMARK: ==================================================
+I (17757) BAVA_BENCHMARK: ==================================================
+I (17757) BAVA_BENCHMARK: [BAVA METRICS] Frame Received Successfully!
+I (17757) BAVA_BENCHMARK: -> Variable Value : 693
+I (17757) BAVA_BENCHMARK: -> Parse Latency  : 73 us
+I (17767) BAVA_BENCHMARK: -> Free Heap      : 295396 bytes (0 Leaks)
+I (17767) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (17777) BAVA_BENCHMARK: ==================================================
+I (17807) BAVA_BENCHMARK: ==================================================
+I (17807) BAVA_BENCHMARK: [BAVA METRICS] Frame Received Successfully!
+I (17807) BAVA_BENCHMARK: -> Variable Value : 694
+I (17807) BAVA_BENCHMARK: -> Parse Latency  : 73 us
+I (17817) BAVA_BENCHMARK: -> Free Heap      : 295396 bytes (0 Leaks)
+I (17817) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (17827) BAVA_BENCHMARK: ==================================================
+I (17857) BAVA_BENCHMARK: ==================================================
+I (17857) BAVA_BENCHMARK: [BAVA METRICS] Frame Received Successfully!
+I (17857) BAVA_BENCHMARK: -> Variable Value : 695
+I (17857) BAVA_BENCHMARK: -> Parse Latency  : 73 us
+I (17867) BAVA_BENCHMARK: -> Free Heap      : 295396 bytes (0 Leaks)
+I (17867) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (17877) BAVA_BENCHMARK: ==================================================
+I (17907) BAVA_BENCHMARK: ==================================================
+I (17907) BAVA_BENCHMARK: [BAVA METRICS] Frame Received Successfully!
+I (17907) BAVA_BENCHMARK: -> Variable Value : 696
+I (17907) BAVA_BENCHMARK: -> Parse Latency  : 73 us
+I (17917) BAVA_BENCHMARK: -> Free Heap      : 295396 bytes (0 Leaks)
+I (17917) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (17927) BAVA_BENCHMARK: ==================================================
+I (17957) BAVA_BENCHMARK: ==================================================
+I (17957) BAVA_BENCHMARK: [BAVA METRICS] Frame Received Successfully!
+I (17957) BAVA_BENCHMARK: -> Variable Value : 697
+I (17957) BAVA_BENCHMARK: -> Parse Latency  : 73 us
+I (17967) BAVA_BENCHMARK: -> Free Heap      : 295396 bytes (0 Leaks)
+I (17967) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (17977) BAVA_BENCHMARK: ==================================================
+I (18007) BAVA_BENCHMARK: ==================================================
+I (18007) BAVA_BENCHMARK: [BAVA METRICS] Frame Received Successfully!
+I (18007) BAVA_BENCHMARK: -> Variable Value : 698
+I (18007) BAVA_BENCHMARK: -> Parse Latency  : 73 us
+I (18017) BAVA_BENCHMARK: -> Free Heap      : 295396 bytes (0 Leaks)
+I (18017) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (18027) BAVA_BENCHMARK: ==================================================
+I (18057) BAVA_BENCHMARK: ==================================================
+I (18057) BAVA_BENCHMARK: [BAVA METRICS] Frame Received Successfully!
+I (18057) BAVA_BENCHMARK: -> Variable Value : 699
+I (18057) BAVA_BENCHMARK: -> Parse Latency  : 73 us
+I (18067) BAVA_BENCHMARK: -> Free Heap      : 295396 bytes (0 Leaks)
+I (18067) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (18077) BAVA_BENCHMARK: ==================================================
+I (18107) BAVA_BENCHMARK: ==================================================
+I (18107) BAVA_BENCHMARK: [BAVA METRICS] Frame Received Successfully!
+I (18107) BAVA_BENCHMARK: -> Variable Value : 700
+I (18107) BAVA_BENCHMARK: -> Parse Latency  : 74 us
+I (18117) BAVA_BENCHMARK: -> Free Heap      : 295396 bytes (0 Leaks)
+I (18117) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (18127) BAVA_BENCHMARK: ==================================================
+I (18157) BAVA_BENCHMARK: ==================================================
+I (18157) BAVA_BENCHMARK: [BAVA METRICS] Frame Received Successfully!
+I (18157) BAVA_BENCHMARK: -> Variable Value : 701
+I (18157) BAVA_BENCHMARK: -> Parse Latency  : 73 us
+I (18167) BAVA_BENCHMARK: -> Free Heap      : 295396 bytes (0 Leaks)
+I (18167) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (18177) BAVA_BENCHMARK: ==================================================
+I (18207) BAVA_BENCHMARK: ==================================================
+I (18207) BAVA_BENCHMARK: [BAVA METRICS] Frame Received Successfully!
+I (18207) BAVA_BENCHMARK: -> Variable Value : 702
+I (18207) BAVA_BENCHMARK: -> Parse Latency  : 74 us
+I (18217) BAVA_BENCHMARK: -> Free Heap      : 295396 bytes (0 Leaks)
+I (18217) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (18227) BAVA_BENCHMARK: ==================================================
+I (18257) BAVA_BENCHMARK: ==================================================
+I (18257) BAVA_BENCHMARK: [BAVA METRICS] Frame Received Successfully!
+I (18257) BAVA_BENCHMARK: -> Variable Value : 703
+I (18257) BAVA_BENCHMARK: -> Parse Latency  : 73 us
+I (18267) BAVA_BENCHMARK: -> Free Heap      : 295396 bytes (0 Leaks)
+I (18267) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (18277) BAVA_BENCHMARK: ==================================================
+I (18307) BAVA_BENCHMARK: ==================================================
+I (18307) BAVA_BENCHMARK: [BAVA METRICS] Frame Received Successfully!
+I (18307) BAVA_BENCHMARK: -> Variable Value : 704
+I (18307) BAVA_BENCHMARK: -> Parse Latency  : 73 us
+I (18317) BAVA_BENCHMARK: -> Free Heap      : 295396 bytes (0 Leaks)
+I (18317) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (18327) BAVA_BENCHMARK: ==================================================
+I (18357) BAVA_BENCHMARK: ==================================================
+I (18357) BAVA_BENCHMARK: [BAVA METRICS] Frame Received Successfully!
+I (18357) BAVA_BENCHMARK: -> Variable Value : 705
+I (18357) BAVA_BENCHMARK: -> Parse Latency  : 73 us
+I (18367) BAVA_BENCHMARK: -> Free Heap      : 295396 bytes (0 Leaks)
+I (18367) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (18377) BAVA_BENCHMARK: ==================================================
+I (18407) BAVA_BENCHMARK: ==================================================
+I (18407) BAVA_BENCHMARK: [BAVA METRICS] Frame Received Successfully!
+I (18407) BAVA_BENCHMARK: -> Variable Value : 706
+I (18407) BAVA_BENCHMARK: -> Parse Latency  : 73 us
+I (18417) BAVA_BENCHMARK: -> Free Heap      : 295396 bytes (0 Leaks)
+I (18417) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (18427) BAVA_BENCHMARK: ==================================================
+I (18457) BAVA_BENCHMARK: ==================================================
+I (18457) BAVA_BENCHMARK: [BAVA METRICS] Frame Received Successfully!
+I (18457) BAVA_BENCHMARK: -> Variable Value : 707
+I (18457) BAVA_BENCHMARK: -> Parse Latency  : 73 us
+I (18467) BAVA_BENCHMARK: -> Free Heap      : 295396 bytes (0 Leaks)
+I (18467) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (18477) BAVA_BENCHMARK: ==================================================
+I (18507) BAVA_BENCHMARK: ==================================================
+I (18507) BAVA_BENCHMARK: [BAVA METRICS] Frame Received Successfully!
+I (18507) BAVA_BENCHMARK: -> Variable Value : 708
+I (18507) BAVA_BENCHMARK: -> Parse Latency  : 73 us
+I (18517) BAVA_BENCHMARK: -> Free Heap      : 295396 bytes (0 Leaks)
+I (18517) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (18527) BAVA_BENCHMARK: ==================================================
+I (18557) BAVA_BENCHMARK: ==================================================
+I (18557) BAVA_BENCHMARK: [BAVA METRICS] Frame Received Successfully!
+I (18557) BAVA_BENCHMARK: -> Variable Value : 709
+I (18557) BAVA_BENCHMARK: -> Parse Latency  : 73 us
+I (18567) BAVA_BENCHMARK: -> Free Heap      : 295396 bytes (0 Leaks)
+I (18567) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (18577) BAVA_BENCHMARK: ==================================================
+I (18607) BAVA_BENCHMARK: ==================================================
+I (18607) BAVA_BENCHMARK: [BAVA METRICS] Frame Received Successfully!
+I (18607) BAVA_BENCHMARK: -> Variable Value : 710
+I (18607) BAVA_BENCHMARK: -> Parse Latency  : 73 us
+I (18617) BAVA_BENCHMARK: -> Free Heap      : 295396 bytes (0 Leaks)
+I (18617) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (18627) BAVA_BENCHMARK: ==================================================

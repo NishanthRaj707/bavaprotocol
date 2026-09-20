@@ -1,0 +1,63 @@
+/{
+
+    This is the output log of the RAW UART STREAM with the payload as the structure of variables
+}
+
+typedef struct {
+    float temperature;
+    float humidity;
+    bool valid_temp;
+    bool valid_hum;
+} parsed_sensor_data_t;
+
+
+UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 36.40 °C, Hum: 50.80 % | Latency: 126 us | Free Heap: 299328 bytes
+I (71468) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 0.00 °C, Hum: 0.00 % | Latency: 105 us | Free Heap: 299328 bytes
+I (71568) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 36.50 °C, Hum: 51.00 % | Latency: 146 us | Free Heap: 299328 bytes
+I (71568) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 0.00 °C, Hum: 0.00 % | Latency: 105 us | Free Heap: 299328 bytes
+I (71578) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 36.60 °C, Hum: 51.20 % | Latency: 126 us | Free Heap: 299328 bytes
+I (71588) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 0.00 °C, Hum: 0.00 % | Latency: 105 us | Free Heap: 299328 bytes
+I (71678) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 36.70 °C, Hum: 51.40 % | Latency: 146 us | Free Heap: 299328 bytes
+I (71678) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 0.00 °C, Hum: 0.00 % | Latency: 105 us | Free Heap: 299328 bytes
+I (71688) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 36.80 °C, Hum: 51.60 % | Latency: 125 us | Free Heap: 299328 bytes
+I (71698) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 0.00 °C, Hum: 0.00 % | Latency: 105 us | Free Heap: 299328 bytes
+I (71798) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 36.90 °C, Hum: 51.80 % | Latency: 146 us | Free Heap: 299328 bytes
+I (71798) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 0.00 °C, Hum: 0.00 % | Latency: 105 us | Free Heap: 299328 bytes
+I (71808) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 37.00 °C, Hum: 52.00 % | Latency: 126 us | Free Heap: 299328 bytes
+I (71818) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 0.00 °C, Hum: 0.00 % | Latency: 105 us | Free Heap: 299328 bytes
+I (71918) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 37.10 °C, Hum: 52.20 % | Latency: 146 us | Free Heap: 299328 bytes
+I (71918) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 0.00 °C, Hum: 0.00 % | Latency: 105 us | Free Heap: 299328 bytes
+I (71928) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 37.20 °C, Hum: 52.40 % | Latency: 125 us | Free Heap: 299328 bytes
+I (71938) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 0.00 °C, Hum: 0.00 % | Latency: 105 us | Free Heap: 299328 bytes
+I (72038) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 37.30 °C, Hum: 52.60 % | Latency: 146 us | Free Heap: 299328 bytes
+I (72038) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 0.00 °C, Hum: 0.00 % | Latency: 105 us | Free Heap: 299328 bytes
+I (72048) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 37.40 °C, Hum: 52.80 % | Latency: 126 us | Free Heap: 299328 bytes
+I (72058) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 0.00 °C, Hum: 0.00 % | Latency: 105 us | Free Heap: 299328 bytes
+I (72158) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 37.50 °C, Hum: 53.00 % | Latency: 146 us | Free Heap: 299328 bytes
+I (72158) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 0.00 °C, Hum: 0.00 % | Latency: 105 us | Free Heap: 299328 bytes
+I (72168) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 37.60 °C, Hum: 53.20 % | Latency: 126 us | Free Heap: 299328 bytes
+I (72178) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 0.00 °C, Hum: 0.00 % | Latency: 105 us | Free Heap: 299328 bytes
+I (72268) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 37.70 °C, Hum: 53.40 % | Latency: 146 us | Free Heap: 299328 bytes
+I (72268) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 0.00 °C, Hum: 0.00 % | Latency: 105 us | Free Heap: 299328 bytes
+I (72278) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 37.80 °C, Hum: 53.60 % | Latency: 125 us | Free Heap: 299328 bytes
+I (72288) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 0.00 °C, Hum: 0.00 % | Latency: 105 us | Free Heap: 299328 bytes
+I (72388) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 37.90 °C, Hum: 53.80 % | Latency: 146 us | Free Heap: 299328 bytes
+I (72388) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 0.00 °C, Hum: 0.00 % | Latency: 105 us | Free Heap: 299328 bytes
+I (72398) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 38.00 °C, Hum: 54.00 % | Latency: 125 us | Free Heap: 299328 bytes
+I (72408) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 0.00 °C, Hum: 0.00 % | Latency: 105 us | Free Heap: 299328 bytes
+I (72508) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 38.10 °C, Hum: 54.20 % | Latency: 146 us | Free Heap: 299328 bytes
+I (72508) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 0.00 °C, Hum: 0.00 % | Latency: 105 us | Free Heap: 299328 bytes
+I (72518) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 38.20 °C, Hum: 54.40 % | Latency: 126 us | Free Heap: 299328 bytes
+I (72528) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 0.00 °C, Hum: 0.00 % | Latency: 105 us | Free Heap: 299328 bytes
+I (72628) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 38.30 °C, Hum: 54.60 % | Latency: 146 us | Free Heap: 299328 bytes
+I (72628) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 0.00 °C, Hum: 0.00 % | Latency: 105 us | Free Heap: 299328 bytes
+I (72638) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 38.40 °C, Hum: 54.80 % | Latency: 126 us | Free Heap: 299328 bytes
+I (72648) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 0.00 °C, Hum: 0.00 % | Latency: 105 us | Free Heap: 299328 bytes
+I (72748) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 38.50 °C, Hum: 55.00 % | Latency: 146 us | Free Heap: 299328 bytes
+I (72748) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 0.00 °C, Hum: 0.00 % | Latency: 105 us | Free Heap: 299328 bytes
+I (72758) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 38.60 °C, Hum: 55.20 % | Latency: 125 us | Free Heap: 299328 bytes
+I (72768) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 0.00 °C, Hum: 0.00 % | Latency: 105 us | Free Heap: 299328 bytes
+I (72868) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 38.70 °C, Hum: 55.40 % | Latency: 146 us | Free Heap: 299328 bytes
+I (72868) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 0.00 °C, Hum: 0.00 % | Latency: 105 us | Free Heap: 299328 bytes
+I (72878) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 38.80 °C, Hum: 55.60 % | Latency: 125 us | Free Heap: 299328 bytes
+I (72888) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 0.00 °C, Hum: 0.00 % | Latency: 105 us | Free Heap: 299328 bytes

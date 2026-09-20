@@ -1,0 +1,80 @@
+{
+    tx latency
+    This is the output log tx latency for raw uart 
+}
+
+
+
+typedef struct __attribute__((packed)) {
+    int temperature; // 32-bit signed integer
+    int humidity;    // 32-bit signed integer
+    int pressure;    // 32-bit signed integer
+} sensor_data_t;
+
+
+
+
+I (17107) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 62 °C, Hum: 87 %, Press: 1050 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (17157) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 63 °C, Hum: 88 %, Press: 1051 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (17207) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 64 °C, Hum: 89 %, Press: 1052 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (17257) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 65 °C, Hum: 90 %, Press: 1053 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (17307) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 66 °C, Hum: 91 %, Press: 1054 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (17357) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 67 °C, Hum: 92 %, Press: 1055 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (17407) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 68 °C, Hum: 93 %, Press: 1056 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (17457) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 69 °C, Hum: 94 %, Press: 1057 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (17507) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 70 °C, Hum: 95 %, Press: 1058 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (17557) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 71 °C, Hum: 96 %, Press: 1059 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (17607) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 72 °C, Hum: 97 %, Press: 1060 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (17657) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 73 °C, Hum: 98 %, Press: 1061 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (17707) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 74 °C, Hum: 99 %, Press: 1062 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (17757) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 75 °C, Hum: 0 %, Press: 1063 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (17807) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 76 °C, Hum: 1 %, Press: 1064 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (17857) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 77 °C, Hum: 2 %, Press: 1065 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (17907) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 78 °C, Hum: 3 %, Press: 1066 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (17957) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 79 °C, Hum: 4 %, Press: 1067 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (18007) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 80 °C, Hum: 5 %, Press: 1068 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (18057) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 81 °C, Hum: 6 %, Press: 1069 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (18107) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 82 °C, Hum: 7 %, Press: 1070 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (18157) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 83 °C, Hum: 8 %, Press: 1071 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (18207) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 84 °C, Hum: 9 %, Press: 1072 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (18257) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 85 °C, Hum: 10 %, Press: 1073 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (18307) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 86 °C, Hum: 11 %, Press: 1074 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (18357) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 87 °C, Hum: 12 %, Press: 1075 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (18407) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 88 °C, Hum: 13 %, Press: 1076 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (18457) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 89 °C, Hum: 14 %, Press: 1077 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (18507) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 90 °C, Hum: 15 %, Press: 1078 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (18557) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 91 °C, Hum: 16 %, Press: 1079 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (18607) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 92 °C, Hum: 17 %, Press: 1080 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (18657) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 93 °C, Hum: 18 %, Press: 1081 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (18707) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 94 °C, Hum: 19 %, Press: 1082 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (18757) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 95 °C, Hum: 20 %, Press: 1083 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (18807) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 96 °C, Hum: 21 %, Press: 1084 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (18857) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 97 °C, Hum: 22 %, Press: 1085 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (18907) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 98 °C, Hum: 23 %, Press: 1086 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (18957) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 99 °C, Hum: 24 %, Press: 1087 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (19007) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 0 °C, Hum: 25 %, Press: 1088 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (19057) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 1 °C, Hum: 26 %, Press: 1089 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (19107) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 2 °C, Hum: 27 %, Press: 1090 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (19157) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 3 °C, Hum: 28 %, Press: 1091 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (19207) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 4 °C, Hum: 29 %, Press: 1092 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (19257) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 5 °C, Hum: 30 %, Press: 1093 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (19307) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 6 °C, Hum: 31 %, Press: 1094 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (19357) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 7 °C, Hum: 32 %, Press: 1095 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (19407) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 8 °C, Hum: 33 %, Press: 1096 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (19457) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 9 °C, Hum: 34 %, Press: 1097 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (19507) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 10 °C, Hum: 35 %, Press: 1098 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (19557) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 11 °C, Hum: 36 %, Press: 1099 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (19607) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 12 °C, Hum: 37 %, Press: 1000 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (19657) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 13 °C, Hum: 38 %, Press: 1001 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (19707) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 14 °C, Hum: 39 %, Press: 1002 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (19757) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 15 °C, Hum: 40 %, Press: 1003 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (19807) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 16 °C, Hum: 41 %, Press: 1004 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (19857) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 17 °C, Hum: 42 %, Press: 1005 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (19907) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 18 °C, Hum: 43 %, Press: 1006 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (19957) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 19 °C, Hum: 44 %, Press: 1007 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (20007) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 20 °C, Hum: 45 %, Press: 1008 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (20057) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 21 °C, Hum: 46 %, Press: 1009 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (20107) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 22 °C, Hum: 47 %, Press: 1010 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (20157) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 23 °C, Hum: 48 %, Press: 1011 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (20207) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 24 °C, Hum: 49 %, Press: 1012 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes
+I (20257) UART_TX_BENCH: [ESP32 BENCHMARK] Transmitted Temp: 25 °C, Hum: 50 %, Press: 1013 hPa | TX Overhead: 33 us | Free Heap: 300356 bytes

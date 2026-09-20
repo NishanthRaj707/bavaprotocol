@@ -1,0 +1,38 @@
+/{
+    this is the output log for RAW UART with the payload as a single variable
+}
+
+
+10738) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 448 | Latency: 45 us | Free Heap: 299328 bytes
+I (10738) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 0 | Latency: 60 us | Free Heap: 299328 bytes
+I (10798) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 449 | Latency: 45 us | Free Heap: 299328 bytes
+I (10798) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 0 | Latency: 60 us | Free Heap: 299328 bytes
+I (10848) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 450 | Latency: 45 us | Free Heap: 299328 bytes
+I (10848) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 0 | Latency: 60 us | Free Heap: 299328 bytes
+I (10908) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 451 | Latency: 45 us | Free Heap: 299328 bytes
+I (10908) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 0 | Latency: 60 us | Free Heap: 299328 bytes
+I (10968) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 452 | Latency: 45 us | Free Heap: 299328 bytes
+I (10968) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 0 | Latency: 60 us | Free Heap: 299328 bytes
+I (11028) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 453 | Latency: 45 us | Free Heap: 299328 bytes
+I (11028) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 0 | Latency: 60 us | Free Heap: 299328 bytes
+I (11078) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 454 | Latency: 45 us | Free Heap: 299328 bytes
+I (11078) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 0 | Latency: 60 us | Free Heap: 299328 bytes
+I (11138) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 455 | Latency: 45 us | Free Heap: 299328 bytes
+I (11138) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 0 | Latency: 60 us | Free Heap: 299328 bytes
+I (11198) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 456 | Latency: 45 us | Free Heap: 299328 bytes
+I (11198) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 0 | Latency: 60 us | Free Heap: 299328 bytes
+I (11258) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 457 | Latency: 45 us | Free Heap: 299328 bytes
+I (11258) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 0 | Latency: 60 us | Free Heap: 299328 bytes
+I (11308) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 458 | Latency: 45 us | Free Heap: 299328 bytes
+I (11308) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 0 | Latency: 60 us | Free Heap: 299328 bytes
+I (11368) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 459 | Latency: 45 us | Free Heap: 299328 bytes
+I (11368) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 0 | Latency: 60 us | Free Heap: 299328 bytes
+I (11428) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 460 | Latency: 45 us | Free Heap: 299328 bytes
+I (11428) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 0 | Latency: 60 us | Free Heap: 299328 bytes
+I (11488) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 461 | Latency: 45 us | Free Heap: 299328 bytes
+I (11488) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 0 | Latency: 60 us | Free Heap: 299328 bytes
+I (11538) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 462 | Latency: 45 us | Free Heap: 299328 bytes
+I (11538) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 0 | Latency: 60 us | Free Heap: 299328 bytes
+I (11598) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 463 | Latency: 45 us | Free Heap: 299328 bytes
+I (11598) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 0 | Latency: 60 us | Free Heap: 299328 bytes
+I (11658) UART_STRING_BENCH: [BENCHMARK] Parsed Temp: 464 | Latency: 45 us | Free Heap: 299328 bytes

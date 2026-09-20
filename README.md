@@ -47,13 +47,23 @@ Inter-microcontroller communication often forces developers to choose between co
 
 ## 📊 Benchmark Metrics & Empirical Profiling
 
-Official real-time hardware profiling data, microsecond execution latency measurements, dynamic heap allocation tracking, and physical signal integrity validation are documented in **[performance.md](performance.md)**.
+Official real-time hardware profiling data, microsecond execution latency measurements, dynamic heap allocation tracking, and physical signal integrity validation are documented in **[performance.md](performance.md)** and the comprehensive benchmark evaluation report in **[report.md](report.md)**.
 
-* ⚡ **Sub-100µs Execution Latency**: Frame creation, CRC computation, and UART FIFO push average **64.56 µs – 64.62 µs**.
-* 🧠 **Zero Heap Footprint**: **0 Bytes** dynamic memory allocated over continuous multi-second profiling runs.
+* 🎓 **Empirical Validation**: Benchmarks empirically validated in the **Department of Instrumentation and Control Engineering at PSG College of Technology**.
+* ⚡ **RX Parse Latency ($O(1)$ Routing)**: Standard ASCII UART string parsing takes up to **251 µs** (135.5 µs mean) and scales $O(N)$ with multiple variables; BAVA routes in **$O(1)$ constant time (73.1 µs – 80.2 µs, averaging ~80 µs)**.
+* ⏱️ **TX Framing Latency**: Standard ASCII `snprintf` takes **33 µs** with zero payload protection; BAVA takes **84 µs** (and **64.56 µs** for minimal frames) to construct a fully byte-escaped, CRC-16 verified binary frame.
+* 🛡️ **Data Integrity (0% Loss)**: Standard asynchronous UART string parsing suffers a **50% data-drop failure rate** due to fragmented hardware buffers ("ghost cycles"); BAVA achieves a **100% success rate** using state-machine reconstruction and CRC-16-CCITT validation.
+* 🧠 **Zero Dynamic Memory Footprint**: BAVA consumes **exactly 0 bytes of dynamic heap allocation** during continuous transmission and reception.
 * 🧱 **Minimal Stack Usage**: Under **96 Bytes** stack high-water mark.
 
-See the complete empirical validation report in **[performance.md](performance.md)**.
+| Metric | Raw ASCII UART | BAVA Protocol | Performance Advantage |
+| :--- | :--- | :--- | :--- |
+| **RX Parse Latency (Receiver)** | Up to 251 µs ($O(N)$ scaling) | **~80 µs ($O(1)$ constant time)** | **Up to 68% Faster RX Parsing** |
+| **TX Framing Latency (Sender)** | 33 µs (Unprotected `snprintf`) | **84 µs (Full CRC-16 Framing)** | **Full Payload Protection** |
+| **Data Integrity / Drops** | ~50% Data Loss (Ghost Cycles) | **100% Delivery Success** | **Zero Data Corruption** |
+| **Dynamic Heap Footprint** | 0 Bytes | **0 Bytes ($O(1)$ Memory)** | **Zero Memory Leaks** |
+
+See the complete empirical validation summary in **[performance.md](performance.md)** and full benchmark test logs in **[report.md](report.md)**.
 
 ---
 

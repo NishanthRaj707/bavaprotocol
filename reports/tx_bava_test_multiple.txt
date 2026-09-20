@@ -1,0 +1,77 @@
+{
+    tx latency
+    This is the output log tx latency for bava protocol 
+}
+
+
+I (18057) BAVA_ESP32_TX: -> ACK Received Confirmation from STM32 Receiver!
+I (18097) BAVA_ESP32_TX: [ESP32 BAVA BENCHMARK] Frame Construction & TX Overhead: 84 us | Temp: 81 C, Hum: 6 %, Press: 1069 hPa | Heap: 295372 bytes
+I (18107) BAVA_ESP32_TX: -> ACK Received Confirmation from STM32 Receiver!
+I (18147) BAVA_ESP32_TX: [ESP32 BAVA BENCHMARK] Frame Construction & TX Overhead: 85 us | Temp: 82 C, Hum: 7 %, Press: 1070 hPa | Heap: 295372 bytes
+I (18157) BAVA_ESP32_TX: -> ACK Received Confirmation from STM32 Receiver!
+I (18197) BAVA_ESP32_TX: [ESP32 BAVA BENCHMARK] Frame Construction & TX Overhead: 84 us | Temp: 83 C, Hum: 8 %, Press: 1071 hPa | Heap: 295372 bytes
+I (18207) BAVA_ESP32_TX: -> ACK Received Confirmation from STM32 Receiver!
+I (18247) BAVA_ESP32_TX: [ESP32 BAVA BENCHMARK] Frame Construction & TX Overhead: 84 us | Temp: 84 C, Hum: 9 %, Press: 1072 hPa | Heap: 295372 bytes
+I (18257) BAVA_ESP32_TX: -> ACK Received Confirmation from STM32 Receiver!
+I (18297) BAVA_ESP32_TX: [ESP32 BAVA BENCHMARK] Frame Construction & TX Overhead: 84 us | Temp: 85 C, Hum: 10 %, Press: 1073 hPa | Heap: 295372 bytes
+I (18307) BAVA_ESP32_TX: -> ACK Received Confirmation from STM32 Receiver!
+I (18347) BAVA_ESP32_TX: [ESP32 BAVA BENCHMARK] Frame Construction & TX Overhead: 84 us | Temp: 86 C, Hum: 11 %, Press: 1074 hPa | Heap: 295372 bytes
+I (18357) BAVA_ESP32_TX: -> ACK Received Confirmation from STM32 Receiver!
+I (18397) BAVA_ESP32_TX: [ESP32 BAVA BENCHMARK] Frame Construction & TX Overhead: 84 us | Temp: 87 C, Hum: 12 %, Press: 1075 hPa | Heap: 295372 bytes
+I (18407) BAVA_ESP32_TX: -> ACK Received Confirmation from STM32 Receiver!
+I (18447) BAVA_ESP32_TX: [ESP32 BAVA BENCHMARK] Frame Construction & TX Overhead: 84 us | Temp: 88 C, Hum: 13 %, Press: 1076 hPa | Heap: 295372 bytes
+I (18457) BAVA_ESP32_TX: -> ACK Received Confirmation from STM32 Receiver!
+I (18497) BAVA_ESP32_TX: [ESP32 BAVA BENCHMARK] Frame Construction & TX Overhead: 85 us | Temp: 89 C, Hum: 14 %, Press: 1077 hPa | Heap: 295372 bytes
+I (18507) BAVA_ESP32_TX: -> ACK Received Confirmation from STM32 Receiver!
+I (18547) BAVA_ESP32_TX: [ESP32 BAVA BENCHMARK] Frame Construction & TX Overhead: 85 us | Temp: 90 C, Hum: 15 %, Press: 1078 hPa | Heap: 295372 bytes
+I (18557) BAVA_ESP32_TX: -> ACK Received Confirmation from STM32 Receiver!
+I (18597) BAVA_ESP32_TX: [ESP32 BAVA BENCHMARK] Frame Construction & TX Overhead: 85 us | Temp: 91 C, Hum: 16 %, Press: 1079 hPa | Heap: 295372 bytes
+I (18607) BAVA_ESP32_TX: -> ACK Received Confirmation from STM32 Receiver!
+I (18647) BAVA_ESP32_TX: [ESP32 BAVA BENCHMARK] Frame Construction & TX Overhead: 84 us | Temp: 92 C, Hum: 17 %, Press: 1080 hPa | Heap: 295372 bytes
+I (18657) BAVA_ESP32_TX: -> ACK Received Confirmation from STM32 Receiver!
+I (18697) BAVA_ESP32_TX: [ESP32 BAVA BENCHMARK] Frame Construction & TX Overhead: 85 us | Temp: 93 C, Hum: 18 %, Press: 1081 hPa | Heap: 295372 bytes
+I (18707) BAVA_ESP32_TX: -> ACK Received Confirmation from STM32 Receiver!
+I (18747) BAVA_ESP32_TX: [ESP32 BAVA BENCHMARK] Frame Construction & TX Overhead: 85 us | Temp: 94 C, Hum: 19 %, Press: 1082 hPa | Heap: 295372 bytes
+I (18757) BAVA_ESP32_TX: -> ACK Received Confirmation from STM32 Receiver!
+I (18797) BAVA_ESP32_TX: [ESP32 BAVA BENCHMARK] Frame Construction & TX Overhead: 84 us | Temp: 95 C, Hum: 20 %, Press: 1083 hPa | Heap: 295372 bytes
+I (18807) BAVA_ESP32_TX: -> ACK Received Confirmation from STM32 Receiver!
+I (18847) BAVA_ESP32_TX: [ESP32 BAVA BENCHMARK] Frame Construction & TX Overhead: 85 us | Temp: 96 C, Hum: 21 %, Press: 1084 hPa | Heap: 295372 bytes
+I (18857) BAVA_ESP32_TX: -> ACK Received Confirmation from STM32 Receiver!
+I (18897) BAVA_ESP32_TX: [ESP32 BAVA BENCHMARK] Frame Construction & TX Overhead: 84 us | Temp: 97 C, Hum: 22 %, Press: 1085 hPa | Heap: 295372 bytes
+I (18907) BAVA_ESP32_TX: -> ACK Received Confirmation from STM32 Receiver!
+I (18947) BAVA_ESP32_TX: [ESP32 BAVA BENCHMARK] Frame Construction & TX Overhead: 85 us | Temp: 98 C, Hum: 23 %, Press: 1086 hPa | Heap: 295372 bytes
+I (18957) BAVA_ESP32_TX: -> ACK Received Confirmation from STM32 Receiver!
+I (18997) BAVA_ESP32_TX: [ESP32 BAVA BENCHMARK] Frame Construction & TX Overhead: 84 us | Temp: 99 C, Hum: 24 %, Press: 1087 hPa | Heap: 295372 bytes
+I (19007) BAVA_ESP32_TX: -> ACK Received Confirmation from STM32 Receiver!
+I (19047) BAVA_ESP32_TX: [ESP32 BAVA BENCHMARK] Frame Construction & TX Overhead: 84 us | Temp: 0 C, Hum: 25 %, Press: 1088 hPa | Heap: 295372 bytes
+I (19057) BAVA_ESP32_TX: -> ACK Received Confirmation from STM32 Receiver!
+I (19097) BAVA_ESP32_TX: [ESP32 BAVA BENCHMARK] Frame Construction & TX Overhead: 84 us | Temp: 1 C, Hum: 26 %, Press: 1089 hPa | Heap: 295372 bytes
+I (19107) BAVA_ESP32_TX: -> ACK Received Confirmation from STM32 Receiver!
+I (19147) BAVA_ESP32_TX: [ESP32 BAVA BENCHMARK] Frame Construction & TX Overhead: 84 us | Temp: 2 C, Hum: 27 %, Press: 1090 hPa | Heap: 295372 bytes
+I (19157) BAVA_ESP32_TX: -> ACK Received Confirmation from STM32 Receiver!
+I (19197) BAVA_ESP32_TX: [ESP32 BAVA BENCHMARK] Frame Construction & TX Overhead: 84 us | Temp: 3 C, Hum: 28 %, Press: 1091 hPa | Heap: 295372 bytes
+I (19207) BAVA_ESP32_TX: -> ACK Received Confirmation from STM32 Receiver!
+I (19247) BAVA_ESP32_TX: [ESP32 BAVA BENCHMARK] Frame Construction & TX Overhead: 84 us | Temp: 4 C, Hum: 29 %, Press: 1092 hPa | Heap: 295372 bytes
+I (19257) BAVA_ESP32_TX: -> ACK Received Confirmation from STM32 Receiver!
+I (19297) BAVA_ESP32_TX: [ESP32 BAVA BENCHMARK] Frame Construction & TX Overhead: 84 us | Temp: 5 C, Hum: 30 %, Press: 1093 hPa | Heap: 295372 bytes
+I (19307) BAVA_ESP32_TX: -> ACK Received Confirmation from STM32 Receiver!
+I (19347) BAVA_ESP32_TX: [ESP32 BAVA BENCHMARK] Frame Construction & TX Overhead: 84 us | Temp: 6 C, Hum: 31 %, Press: 1094 hPa | Heap: 295372 bytes
+I (19357) BAVA_ESP32_TX: -> ACK Received Confirmation from STM32 Receiver!
+I (19397) BAVA_ESP32_TX: [ESP32 BAVA BENCHMARK] Frame Construction & TX Overhead: 84 us | Temp: 7 C, Hum: 32 %, Press: 1095 hPa | Heap: 295372 bytes
+I (19407) BAVA_ESP32_TX: -> ACK Received Confirmation from STM32 Receiver!
+I (19447) BAVA_ESP32_TX: [ESP32 BAVA BENCHMARK] Frame Construction & TX Overhead: 85 us | Temp: 8 C, Hum: 33 %, Press: 1096 hPa | Heap: 295372 bytes
+I (19457) BAVA_ESP32_TX: -> ACK Received Confirmation from STM32 Receiver!
+I (19497) BAVA_ESP32_TX: [ESP32 BAVA BENCHMARK] Frame Construction & TX Overhead: 84 us | Temp: 9 C, Hum: 34 %, Press: 1097 hPa | Heap: 295372 bytes
+I (19507) BAVA_ESP32_TX: -> ACK Received Confirmation from STM32 Receiver!
+I (19547) BAVA_ESP32_TX: [ESP32 BAVA BENCHMARK] Frame Construction & TX Overhead: 85 us | Temp: 10 C, Hum: 35 %, Press: 1098 hPa | Heap: 295372 bytes
+I (19557) BAVA_ESP32_TX: -> ACK Received Confirmation from STM32 Receiver!
+I (19597) BAVA_ESP32_TX: [ESP32 BAVA BENCHMARK] Frame Construction & TX Overhead: 84 us | Temp: 11 C, Hum: 36 %, Press: 1099 hPa | Heap: 295372 bytes
+I (19607) BAVA_ESP32_TX: -> ACK Received Confirmation from STM32 Receiver!
+I (19647) BAVA_ESP32_TX: [ESP32 BAVA BENCHMARK] Frame Construction & TX Overhead: 85 us | Temp: 12 C, Hum: 37 %, Press: 1000 hPa | Heap: 295372 bytes
+I (19657) BAVA_ESP32_TX: -> ACK Received Confirmation from STM32 Receiver!
+I (19697) BAVA_ESP32_TX: [ESP32 BAVA BENCHMARK] Frame Construction & TX Overhead: 84 us | Temp: 13 C, Hum: 38 %, Press: 1001 hPa | Heap: 295372 bytes
+I (19707) BAVA_ESP32_TX: -> ACK Received Confirmation from STM32 Receiver!
+I (19747) BAVA_ESP32_TX: [ESP32 BAVA BENCHMARK] Frame Construction & TX Overhead: 85 us | Temp: 14 C, Hum: 39 %, Press: 1002 hPa | Heap: 295372 bytes
+I (19757) BAVA_ESP32_TX: -> ACK Received Confirmation from STM32 Receiver!
+I (19797) BAVA_ESP32_TX: [ESP32 BAVA BENCHMARK] Frame Construction & TX Overhead: 84 us | Temp: 15 C, Hum: 40 %, Press: 1003 hPa | Heap: 295372 bytes
+I (19807) BAVA_ESP32_TX: -> ACK Received Confirmation from STM32 Receiver!

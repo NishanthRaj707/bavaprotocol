@@ -1,0 +1,695 @@
+/{  RX Latency test
+    this is the output log for bava protocol tested with the payload of structure of variables
+}
+
+typedef struct __attribute__((packed)) {
+    uint32_t temperature;
+    uint32_t humidity;
+    uint16_t pressure;
+    uint8_t  system_status;
+} telemetry_payload_t;
+
+
+
+
+I (4397) BAVA_BENCHMARK: ==================================================
+I (4397) BAVA_BENCHMARK: ==================================================
+I (4407) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (4417) BAVA_BENCHMARK: -> Temperature   : 784
+I (4417) BAVA_BENCHMARK: -> Humidity      : 722
+I (4427) BAVA_BENCHMARK: -> Pressure      : 1349
+I (4427) BAVA_BENCHMARK: -> System Status : 81
+I (4427) BAVA_BENCHMARK: -> Parse Latency  : 81 us
+I (4437) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (4437) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (4447) BAVA_BENCHMARK: ==================================================
+I (4457) BAVA_BENCHMARK: ==================================================
+I (4457) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (4467) BAVA_BENCHMARK: -> Temperature   : 785
+I (4467) BAVA_BENCHMARK: -> Humidity      : 724
+I (4477) BAVA_BENCHMARK: -> Pressure      : 1350
+I (4477) BAVA_BENCHMARK: -> System Status : 82
+I (4487) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (4487) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (4497) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (4497) BAVA_BENCHMARK: ==================================================
+I (4507) BAVA_BENCHMARK: ==================================================
+I (4517) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (4517) BAVA_BENCHMARK: -> Temperature   : 786
+I (4527) BAVA_BENCHMARK: -> Humidity      : 726
+I (4527) BAVA_BENCHMARK: -> Pressure      : 1351
+I (4537) BAVA_BENCHMARK: -> System Status : 83
+I (4537) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (4537) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (4547) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (4557) BAVA_BENCHMARK: ==================================================
+I (4567) BAVA_BENCHMARK: ==================================================
+I (4567) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (4577) BAVA_BENCHMARK: -> Temperature   : 787
+I (4577) BAVA_BENCHMARK: -> Humidity      : 728
+I (4577) BAVA_BENCHMARK: -> Pressure      : 1352
+I (4587) BAVA_BENCHMARK: -> System Status : 84
+I (4587) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (4597) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (4597) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (4607) BAVA_BENCHMARK: ==================================================
+I (4617) BAVA_BENCHMARK: ==================================================
+I (4617) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (4627) BAVA_BENCHMARK: -> Temperature   : 788
+I (4627) BAVA_BENCHMARK: -> Humidity      : 730
+I (4637) BAVA_BENCHMARK: -> Pressure      : 1353
+I (4637) BAVA_BENCHMARK: -> System Status : 85
+I (4647) BAVA_BENCHMARK: -> Parse Latency  : 81 us
+I (4647) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (4657) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (4657) BAVA_BENCHMARK: ==================================================
+I (4667) BAVA_BENCHMARK: ==================================================
+I (4677) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (4677) BAVA_BENCHMARK: -> Temperature   : 789
+I (4687) BAVA_BENCHMARK: -> Humidity      : 732
+I (4687) BAVA_BENCHMARK: -> Pressure      : 1354
+I (4697) BAVA_BENCHMARK: -> System Status : 86
+I (4697) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (4697) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (4707) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (4717) BAVA_BENCHMARK: ==================================================
+I (4717) BAVA_BENCHMARK: ==================================================
+I (4727) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (4737) BAVA_BENCHMARK: -> Temperature   : 790
+I (4737) BAVA_BENCHMARK: -> Humidity      : 734
+I (4737) BAVA_BENCHMARK: -> Pressure      : 1355
+I (4747) BAVA_BENCHMARK: -> System Status : 87
+I (4747) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (4757) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (4757) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (4767) BAVA_BENCHMARK: ==================================================
+I (4777) BAVA_BENCHMARK: ==================================================
+I (4777) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (4787) BAVA_BENCHMARK: -> Temperature   : 791
+I (4787) BAVA_BENCHMARK: -> Humidity      : 736
+I (4797) BAVA_BENCHMARK: -> Pressure      : 1356
+I (4797) BAVA_BENCHMARK: -> System Status : 88
+I (4807) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (4807) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (4817) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (4817) BAVA_BENCHMARK: ==================================================
+I (4827) BAVA_BENCHMARK: ==================================================
+I (4837) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (4837) BAVA_BENCHMARK: -> Temperature   : 792
+I (4847) BAVA_BENCHMARK: -> Humidity      : 738
+I (4847) BAVA_BENCHMARK: -> Pressure      : 1357
+I (4847) BAVA_BENCHMARK: -> System Status : 89
+I (4857) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (4857) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (4867) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (4867) BAVA_BENCHMARK: ==================================================
+I (4877) BAVA_BENCHMARK: ==================================================
+I (4887) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (4887) BAVA_BENCHMARK: -> Temperature   : 793
+I (4897) BAVA_BENCHMARK: -> Humidity      : 740
+I (4897) BAVA_BENCHMARK: -> Pressure      : 1358
+I (4907) BAVA_BENCHMARK: -> System Status : 90
+I (4907) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (4917) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (4917) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (4927) BAVA_BENCHMARK: ==================================================
+I (4927) BAVA_BENCHMARK: ==================================================
+I (4937) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (4947) BAVA_BENCHMARK: -> Temperature   : 794
+I (4947) BAVA_BENCHMARK: -> Humidity      : 742
+I (4957) BAVA_BENCHMARK: -> Pressure      : 1359
+I (4957) BAVA_BENCHMARK: -> System Status : 91
+I (4967) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (4967) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (4977) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (4977) BAVA_BENCHMARK: ==================================================
+I (4987) BAVA_BENCHMARK: ==================================================
+I (4987) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (4997) BAVA_BENCHMARK: -> Temperature   : 795
+I (5007) BAVA_BENCHMARK: -> Humidity      : 744
+I (5007) BAVA_BENCHMARK: -> Pressure      : 1360
+I (5007) BAVA_BENCHMARK: -> System Status : 92
+I (5017) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (5017) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (5027) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (5027) BAVA_BENCHMARK: ==================================================
+I (5037) BAVA_BENCHMARK: ==================================================
+I (5047) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (5047) BAVA_BENCHMARK: -> Temperature   : 796
+I (5057) BAVA_BENCHMARK: -> Humidity      : 746
+I (5057) BAVA_BENCHMARK: -> Pressure      : 1361
+I (5067) BAVA_BENCHMARK: -> System Status : 93
+I (5067) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (5077) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (5077) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (5087) BAVA_BENCHMARK: ==================================================
+I (5087) BAVA_BENCHMARK: ==================================================
+I (5097) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (5107) BAVA_BENCHMARK: -> Temperature   : 797
+I (5107) BAVA_BENCHMARK: -> Humidity      : 748
+I (5117) BAVA_BENCHMARK: -> Pressure      : 1362
+I (5117) BAVA_BENCHMARK: -> System Status : 94
+I (5117) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (5127) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (5127) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (5137) BAVA_BENCHMARK: ==================================================
+I (5147) BAVA_BENCHMARK: ==================================================
+I (5147) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (5157) BAVA_BENCHMARK: -> Temperature   : 798
+I (5157) BAVA_BENCHMARK: -> Humidity      : 750
+I (5167) BAVA_BENCHMARK: -> Pressure      : 1363
+I (5167) BAVA_BENCHMARK: -> System Status : 95
+I (5177) BAVA_BENCHMARK: -> Parse Latency  : 81 us
+I (5177) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (5187) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (5187) BAVA_BENCHMARK: ==================================================
+I (5197) BAVA_BENCHMARK: ==================================================
+I (5207) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (5207) BAVA_BENCHMARK: -> Temperature   : 799
+I (5217) BAVA_BENCHMARK: -> Humidity      : 752
+I (5217) BAVA_BENCHMARK: -> Pressure      : 1364
+I (5227) BAVA_BENCHMARK: -> System Status : 96
+I (5227) BAVA_BENCHMARK: -> Parse Latency  : 81 us
+I (5237) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (5237) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (5247) BAVA_BENCHMARK: ==================================================
+I (5247) BAVA_BENCHMARK: ==================================================
+I (5257) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (5267) BAVA_BENCHMARK: -> Temperature   : 800
+I (5267) BAVA_BENCHMARK: -> Humidity      : 754
+I (5277) BAVA_BENCHMARK: -> Pressure      : 1365
+I (5277) BAVA_BENCHMARK: -> System Status : 97
+I (5277) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (5287) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (5287) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (5297) BAVA_BENCHMARK: ==================================================
+I (5307) BAVA_BENCHMARK: ==================================================
+I (5307) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (5317) BAVA_BENCHMARK: -> Temperature   : 801
+I (5317) BAVA_BENCHMARK: -> Humidity      : 756
+I (5327) BAVA_BENCHMARK: -> Pressure      : 1366
+I (5327) BAVA_BENCHMARK: -> System Status : 98
+I (5337) BAVA_BENCHMARK: -> Parse Latency  : 81 us
+I (5337) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (5347) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (5347) BAVA_BENCHMARK: ==================================================
+I (5357) BAVA_BENCHMARK: ==================================================
+I (5367) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (5367) BAVA_BENCHMARK: -> Temperature   : 802
+I (5377) BAVA_BENCHMARK: -> Humidity      : 758
+I (5377) BAVA_BENCHMARK: -> Pressure      : 1367
+I (5387) BAVA_BENCHMARK: -> System Status : 99
+I (5387) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (5387) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (5397) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (5407) BAVA_BENCHMARK: ==================================================
+I (5407) BAVA_BENCHMARK: ==================================================
+I (5417) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (5427) BAVA_BENCHMARK: -> Temperature   : 803
+I (5427) BAVA_BENCHMARK: -> Humidity      : 760
+I (5427) BAVA_BENCHMARK: -> Pressure      : 1368
+I (5437) BAVA_BENCHMARK: -> System Status : 100
+I (5437) BAVA_BENCHMARK: -> Parse Latency  : 81 us
+I (5447) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (5447) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (5457) BAVA_BENCHMARK: ==================================================
+I (5467) BAVA_BENCHMARK: ==================================================
+I (5467) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (5477) BAVA_BENCHMARK: -> Temperature   : 804
+I (5477) BAVA_BENCHMARK: -> Humidity      : 762
+I (5487) BAVA_BENCHMARK: -> Pressure      : 1369
+I (5487) BAVA_BENCHMARK: -> System Status : 101
+I (5497) BAVA_BENCHMARK: -> Parse Latency  : 79 us
+I (5497) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (5507) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (5507) BAVA_BENCHMARK: ==================================================
+I (5517) BAVA_BENCHMARK: ==================================================
+I (5527) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (5527) BAVA_BENCHMARK: -> Temperature   : 805
+I (5537) BAVA_BENCHMARK: -> Humidity      : 764
+I (5537) BAVA_BENCHMARK: -> Pressure      : 1370
+I (5547) BAVA_BENCHMARK: -> System Status : 102
+I (5547) BAVA_BENCHMARK: -> Parse Latency  : 81 us
+I (5547) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (5557) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (5567) BAVA_BENCHMARK: ==================================================
+I (5567) BAVA_BENCHMARK: ==================================================
+I (5577) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (5587) BAVA_BENCHMARK: -> Temperature   : 806
+I (5587) BAVA_BENCHMARK: -> Humidity      : 766
+I (5587) BAVA_BENCHMARK: -> Pressure      : 1371
+I (5597) BAVA_BENCHMARK: -> System Status : 103
+I (5597) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (5607) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (5607) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (5617) BAVA_BENCHMARK: ==================================================
+I (5627) BAVA_BENCHMARK: ==================================================
+I (5627) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (5637) BAVA_BENCHMARK: -> Temperature   : 807
+I (5637) BAVA_BENCHMARK: -> Humidity      : 768
+I (5647) BAVA_BENCHMARK: -> Pressure      : 1372
+I (5647) BAVA_BENCHMARK: -> System Status : 104
+I (5657) BAVA_BENCHMARK: -> Parse Latency  : 81 us
+I (5657) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (5667) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (5667) BAVA_BENCHMARK: ==================================================
+I (5677) BAVA_BENCHMARK: ==================================================
+I (5687) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (5687) BAVA_BENCHMARK: -> Temperature   : 808
+I (5697) BAVA_BENCHMARK: -> Humidity      : 770
+I (5697) BAVA_BENCHMARK: -> Pressure      : 1373
+I (5707) BAVA_BENCHMARK: -> System Status : 105
+I (5707) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (5707) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (5717) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (5727) BAVA_BENCHMARK: ==================================================
+I (5727) BAVA_BENCHMARK: ==================================================
+I (5737) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (5747) BAVA_BENCHMARK: -> Temperature   : 809
+I (5747) BAVA_BENCHMARK: -> Humidity      : 772
+I (5747) BAVA_BENCHMARK: -> Pressure      : 1374
+I (5757) BAVA_BENCHMARK: -> System Status : 106
+I (5757) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (5767) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (5767) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (5777) BAVA_BENCHMARK: ==================================================
+I (5787) BAVA_BENCHMARK: ==================================================
+I (5787) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (5797) BAVA_BENCHMARK: -> Temperature   : 810
+I (5797) BAVA_BENCHMARK: -> Humidity      : 774
+I (5807) BAVA_BENCHMARK: -> Pressure      : 1375
+I (5807) BAVA_BENCHMARK: -> System Status : 107
+I (5817) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (5817) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (5827) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (5827) BAVA_BENCHMARK: ==================================================
+I (5837) BAVA_BENCHMARK: ==================================================
+I (5847) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (5847) BAVA_BENCHMARK: -> Temperature   : 811
+I (5857) BAVA_BENCHMARK: -> Humidity      : 776
+I (5857) BAVA_BENCHMARK: -> Pressure      : 1376
+I (5857) BAVA_BENCHMARK: -> System Status : 108
+I (5867) BAVA_BENCHMARK: -> Parse Latency  : 79 us
+I (5867) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (5877) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (5887) BAVA_BENCHMARK: ==================================================
+I (5887) BAVA_BENCHMARK: ==================================================
+I (5897) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (5907) BAVA_BENCHMARK: -> Temperature   : 812
+I (5907) BAVA_BENCHMARK: -> Humidity      : 778
+I (5907) BAVA_BENCHMARK: -> Pressure      : 1377
+I (5917) BAVA_BENCHMARK: -> System Status : 109
+I (5917) BAVA_BENCHMARK: -> Parse Latency  : 79 us
+I (5927) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (5927) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (5937) BAVA_BENCHMARK: ==================================================
+I (5947) BAVA_BENCHMARK: ==================================================
+I (5947) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (5957) BAVA_BENCHMARK: -> Temperature   : 813
+I (5957) BAVA_BENCHMARK: -> Humidity      : 780
+I (5967) BAVA_BENCHMARK: -> Pressure      : 1378
+I (5967) BAVA_BENCHMARK: -> System Status : 110
+I (5977) BAVA_BENCHMARK: -> Parse Latency  : 90 us
+I (5977) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (5987) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (5987) BAVA_BENCHMARK: ==================================================
+I (5997) BAVA_BENCHMARK: ==================================================
+I (5997) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (6007) BAVA_BENCHMARK: -> Temperature   : 814
+I (6017) BAVA_BENCHMARK: -> Humidity      : 782
+I (6017) BAVA_BENCHMARK: -> Pressure      : 1379
+I (6017) BAVA_BENCHMARK: -> System Status : 111
+I (6027) BAVA_BENCHMARK: -> Parse Latency  : 81 us
+I (6027) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (6037) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (6037) BAVA_BENCHMARK: ==================================================
+I (6047) BAVA_BENCHMARK: ==================================================
+I (6057) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (6057) BAVA_BENCHMARK: -> Temperature   : 815
+I (6067) BAVA_BENCHMARK: -> Humidity      : 784
+I (6067) BAVA_BENCHMARK: -> Pressure      : 1380
+I (6077) BAVA_BENCHMARK: -> System Status : 112
+I (6077) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (6087) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (6087) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (6097) BAVA_BENCHMARK: ==================================================
+I (6097) BAVA_BENCHMARK: ==================================================
+I (6107) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (6117) BAVA_BENCHMARK: -> Temperature   : 816
+I (6117) BAVA_BENCHMARK: -> Humidity      : 786
+I (6127) BAVA_BENCHMARK: -> Pressure      : 1381
+I (6127) BAVA_BENCHMARK: -> System Status : 113
+I (6137) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (6137) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (6147) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (6147) BAVA_BENCHMARK: ==================================================
+I (6157) BAVA_BENCHMARK: ==================================================
+I (6157) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (6167) BAVA_BENCHMARK: -> Temperature   : 817
+I (6177) BAVA_BENCHMARK: -> Humidity      : 788
+I (6177) BAVA_BENCHMARK: -> Pressure      : 1382
+I (6177) BAVA_BENCHMARK: -> System Status : 114
+I (6187) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (6187) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (6197) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (6197) BAVA_BENCHMARK: ==================================================
+I (6207) BAVA_BENCHMARK: ==================================================
+I (6217) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (6217) BAVA_BENCHMARK: -> Temperature   : 818
+I (6227) BAVA_BENCHMARK: -> Humidity      : 790
+I (6227) BAVA_BENCHMARK: -> Pressure      : 1383
+I (6237) BAVA_BENCHMARK: -> System Status : 115
+I (6237) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (6247) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (6247) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (6257) BAVA_BENCHMARK: ==================================================
+I (6257) BAVA_BENCHMARK: ==================================================
+I (6267) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (6277) BAVA_BENCHMARK: -> Temperature   : 819
+I (6277) BAVA_BENCHMARK: -> Humidity      : 792
+I (6287) BAVA_BENCHMARK: -> Pressure      : 1384
+I (6287) BAVA_BENCHMARK: -> System Status : 116
+I (6287) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (6297) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (6307) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (6307) BAVA_BENCHMARK: ==================================================
+I (6317) BAVA_BENCHMARK: ==================================================
+I (6317) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (6327) BAVA_BENCHMARK: -> Temperature   : 820
+I (6337) BAVA_BENCHMARK: -> Humidity      : 794
+I (6337) BAVA_BENCHMARK: -> Pressure      : 1385
+I (6337) BAVA_BENCHMARK: -> System Status : 117
+I (6347) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (6347) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (6357) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (6357) BAVA_BENCHMARK: ==================================================
+I (6367) BAVA_BENCHMARK: ==================================================
+I (6377) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (6377) BAVA_BENCHMARK: -> Temperature   : 821
+I (6387) BAVA_BENCHMARK: -> Humidity      : 796
+I (6387) BAVA_BENCHMARK: -> Pressure      : 1386
+I (6397) BAVA_BENCHMARK: -> System Status : 118
+I (6397) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (6407) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (6407) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (6417) BAVA_BENCHMARK: ==================================================
+I (6417) BAVA_BENCHMARK: ==================================================
+I (6427) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (6437) BAVA_BENCHMARK: -> Temperature   : 822
+I (6437) BAVA_BENCHMARK: -> Humidity      : 798
+I (6447) BAVA_BENCHMARK: -> Pressure      : 1387
+I (6447) BAVA_BENCHMARK: -> System Status : 119
+I (6447) BAVA_BENCHMARK: -> Parse Latency  : 79 us
+I (6457) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (6457) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (6467) BAVA_BENCHMARK: ==================================================
+I (6477) BAVA_BENCHMARK: ==================================================
+I (6477) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (6487) BAVA_BENCHMARK: -> Temperature   : 823
+I (6487) BAVA_BENCHMARK: -> Humidity      : 800
+I (6497) BAVA_BENCHMARK: -> Pressure      : 1388
+I (6497) BAVA_BENCHMARK: -> System Status : 120
+I (6507) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (6507) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (6517) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (6517) BAVA_BENCHMARK: ==================================================
+I (6527) BAVA_BENCHMARK: ==================================================
+I (6537) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (6537) BAVA_BENCHMARK: -> Temperature   : 824
+I (6547) BAVA_BENCHMARK: -> Humidity      : 802
+I (6547) BAVA_BENCHMARK: -> Pressure      : 1389
+I (6557) BAVA_BENCHMARK: -> System Status : 121
+I (6557) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (6567) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (6567) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (6577) BAVA_BENCHMARK: ==================================================
+I (6577) BAVA_BENCHMARK: ==================================================
+I (6587) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (6597) BAVA_BENCHMARK: -> Temperature   : 825
+I (6597) BAVA_BENCHMARK: -> Humidity      : 804
+I (6607) BAVA_BENCHMARK: -> Pressure      : 1390
+I (6607) BAVA_BENCHMARK: -> System Status : 122
+I (6607) BAVA_BENCHMARK: -> Parse Latency  : 79 us
+I (6617) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (6617) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (6627) BAVA_BENCHMARK: ==================================================
+I (6637) BAVA_BENCHMARK: ==================================================
+I (6637) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (6647) BAVA_BENCHMARK: -> Temperature   : 826
+I (6647) BAVA_BENCHMARK: -> Humidity      : 806
+I (6657) BAVA_BENCHMARK: -> Pressure      : 1391
+I (6657) BAVA_BENCHMARK: -> System Status : 123
+I (6667) BAVA_BENCHMARK: -> Parse Latency  : 79 us
+I (6667) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (6677) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (6677) BAVA_BENCHMARK: ==================================================
+I (6687) BAVA_BENCHMARK: ==================================================
+I (6697) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (6697) BAVA_BENCHMARK: -> Temperature   : 827
+I (6707) BAVA_BENCHMARK: -> Humidity      : 808
+I (6707) BAVA_BENCHMARK: -> Pressure      : 1392
+I (6717) BAVA_BENCHMARK: -> System Status : 124
+I (6717) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (6717) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (6727) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (6737) BAVA_BENCHMARK: ==================================================
+I (6737) BAVA_BENCHMARK: ==================================================
+I (6747) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (6757) BAVA_BENCHMARK: -> Temperature   : 828
+I (6757) BAVA_BENCHMARK: -> Humidity      : 810
+I (6757) BAVA_BENCHMARK: -> Pressure      : 1393
+I (6767) BAVA_BENCHMARK: -> System Status : 125
+I (6767) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (6777) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (6777) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (6787) BAVA_BENCHMARK: ==================================================
+I (6797) BAVA_BENCHMARK: ==================================================
+I (6797) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (6807) BAVA_BENCHMARK: -> Temperature   : 829
+I (6807) BAVA_BENCHMARK: -> Humidity      : 812
+I (6817) BAVA_BENCHMARK: -> Pressure      : 1394
+I (6817) BAVA_BENCHMARK: -> System Status : 126
+I (6827) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (6827) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (6837) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (6837) BAVA_BENCHMARK: ==================================================
+I (6847) BAVA_BENCHMARK: ==================================================
+I (6857) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (6857) BAVA_BENCHMARK: -> Temperature   : 830
+I (6867) BAVA_BENCHMARK: -> Humidity      : 814
+I (6867) BAVA_BENCHMARK: -> Pressure      : 1395
+I (6877) BAVA_BENCHMARK: -> System Status : 127
+I (6877) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (6877) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (6887) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (6897) BAVA_BENCHMARK: ==================================================
+I (6897) BAVA_BENCHMARK: ==================================================
+I (6907) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (6917) BAVA_BENCHMARK: -> Temperature   : 831
+I (6917) BAVA_BENCHMARK: -> Humidity      : 816
+I (6917) BAVA_BENCHMARK: -> Pressure      : 1396
+I (6927) BAVA_BENCHMARK: -> System Status : 128
+I (6927) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (6937) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (6937) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (6947) BAVA_BENCHMARK: ==================================================
+I (6957) BAVA_BENCHMARK: ==================================================
+I (6957) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (6967) BAVA_BENCHMARK: -> Temperature   : 832
+I (6967) BAVA_BENCHMARK: -> Humidity      : 818
+I (6977) BAVA_BENCHMARK: -> Pressure      : 1397
+I (6977) BAVA_BENCHMARK: -> System Status : 129
+I (6987) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (6987) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (6997) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (6997) BAVA_BENCHMARK: ==================================================
+I (7007) BAVA_BENCHMARK: ==================================================
+I (7017) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (7017) BAVA_BENCHMARK: -> Temperature   : 833
+I (7027) BAVA_BENCHMARK: -> Humidity      : 820
+I (7027) BAVA_BENCHMARK: -> Pressure      : 1398
+I (7037) BAVA_BENCHMARK: -> System Status : 130
+I (7037) BAVA_BENCHMARK: -> Parse Latency  : 81 us
+I (7037) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (7047) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (7057) BAVA_BENCHMARK: ==================================================
+I (7057) BAVA_BENCHMARK: ==================================================
+I (7067) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (7077) BAVA_BENCHMARK: -> Temperature   : 834
+I (7077) BAVA_BENCHMARK: -> Humidity      : 822
+I (7077) BAVA_BENCHMARK: -> Pressure      : 1399
+I (7087) BAVA_BENCHMARK: -> System Status : 131
+I (7087) BAVA_BENCHMARK: -> Parse Latency  : 81 us
+I (7097) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (7097) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (7107) BAVA_BENCHMARK: ==================================================
+I (7117) BAVA_BENCHMARK: ==================================================
+I (7117) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (7127) BAVA_BENCHMARK: -> Temperature   : 835
+I (7127) BAVA_BENCHMARK: -> Humidity      : 824
+I (7137) BAVA_BENCHMARK: -> Pressure      : 1400
+I (7137) BAVA_BENCHMARK: -> System Status : 132
+I (7147) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (7147) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (7157) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (7157) BAVA_BENCHMARK: ==================================================
+I (7167) BAVA_BENCHMARK: ==================================================
+I (7177) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (7177) BAVA_BENCHMARK: -> Temperature   : 836
+I (7187) BAVA_BENCHMARK: -> Humidity      : 826
+I (7187) BAVA_BENCHMARK: -> Pressure      : 1401
+I (7197) BAVA_BENCHMARK: -> System Status : 133
+I (7197) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (7197) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (7207) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (7217) BAVA_BENCHMARK: ==================================================
+I (7217) BAVA_BENCHMARK: ==================================================
+I (7227) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (7237) BAVA_BENCHMARK: -> Temperature   : 837
+I (7237) BAVA_BENCHMARK: -> Humidity      : 828
+I (7237) BAVA_BENCHMARK: -> Pressure      : 1402
+I (7247) BAVA_BENCHMARK: -> System Status : 134
+I (7247) BAVA_BENCHMARK: -> Parse Latency  : 79 us
+I (7257) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (7257) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (7267) BAVA_BENCHMARK: ==================================================
+I (7277) BAVA_BENCHMARK: ==================================================
+I (7277) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (7287) BAVA_BENCHMARK: -> Temperature   : 838
+I (7287) BAVA_BENCHMARK: -> Humidity      : 830
+I (7297) BAVA_BENCHMARK: -> Pressure      : 1403
+I (7297) BAVA_BENCHMARK: -> System Status : 135
+I (7307) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (7307) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (7317) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (7317) BAVA_BENCHMARK: ==================================================
+I (7327) BAVA_BENCHMARK: ==================================================
+I (7337) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (7337) BAVA_BENCHMARK: -> Temperature   : 839
+I (7347) BAVA_BENCHMARK: -> Humidity      : 832
+I (7347) BAVA_BENCHMARK: -> Pressure      : 1404
+I (7347) BAVA_BENCHMARK: -> System Status : 136
+I (7357) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (7357) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (7367) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (7367) BAVA_BENCHMARK: ==================================================
+I (7377) BAVA_BENCHMARK: ==================================================
+I (7387) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (7397) BAVA_BENCHMARK: -> Temperature   : 840
+I (7397) BAVA_BENCHMARK: -> Humidity      : 834
+I (7397) BAVA_BENCHMARK: -> Pressure      : 1405
+I (7407) BAVA_BENCHMARK: -> System Status : 137
+I (7407) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (7417) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (7417) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (7427) BAVA_BENCHMARK: ==================================================
+I (7437) BAVA_BENCHMARK: ==================================================
+I (7437) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (7447) BAVA_BENCHMARK: -> Temperature   : 841
+I (7447) BAVA_BENCHMARK: -> Humidity      : 836
+I (7457) BAVA_BENCHMARK: -> Pressure      : 1406
+I (7457) BAVA_BENCHMARK: -> System Status : 138
+I (7467) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (7467) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (7477) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (7477) BAVA_BENCHMARK: ==================================================
+I (7487) BAVA_BENCHMARK: ==================================================
+I (7487) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (7497) BAVA_BENCHMARK: -> Temperature   : 842
+I (7507) BAVA_BENCHMARK: -> Humidity      : 838
+I (7507) BAVA_BENCHMARK: -> Pressure      : 1407
+I (7507) BAVA_BENCHMARK: -> System Status : 139
+I (7517) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (7517) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (7527) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (7527) BAVA_BENCHMARK: ==================================================
+I (7537) BAVA_BENCHMARK: ==================================================
+I (7547) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (7547) BAVA_BENCHMARK: -> Temperature   : 843
+I (7557) BAVA_BENCHMARK: -> Humidity      : 840
+I (7557) BAVA_BENCHMARK: -> Pressure      : 1408
+I (7567) BAVA_BENCHMARK: -> System Status : 140
+I (7567) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (7577) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (7577) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (7587) BAVA_BENCHMARK: ==================================================
+I (7587) BAVA_BENCHMARK: ==================================================
+I (7597) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (7607) BAVA_BENCHMARK: -> Temperature   : 844
+I (7607) BAVA_BENCHMARK: -> Humidity      : 842
+I (7617) BAVA_BENCHMARK: -> Pressure      : 1409
+I (7617) BAVA_BENCHMARK: -> System Status : 141
+I (7617) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (7627) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (7637) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (7637) BAVA_BENCHMARK: ==================================================
+I (7647) BAVA_BENCHMARK: ==================================================
+I (7647) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (7657) BAVA_BENCHMARK: -> Temperature   : 845
+I (7667) BAVA_BENCHMARK: -> Humidity      : 844
+I (7667) BAVA_BENCHMARK: -> Pressure      : 1410
+I (7667) BAVA_BENCHMARK: -> System Status : 142
+I (7677) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (7677) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (7687) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (7687) BAVA_BENCHMARK: ==================================================
+I (7697) BAVA_BENCHMARK: ==================================================
+I (7707) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (7707) BAVA_BENCHMARK: -> Temperature   : 846
+I (7717) BAVA_BENCHMARK: -> Humidity      : 846
+I (7717) BAVA_BENCHMARK: -> Pressure      : 1411
+I (7727) BAVA_BENCHMARK: -> System Status : 143
+I (7727) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (7737) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (7737) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (7747) BAVA_BENCHMARK: ==================================================
+I (7747) BAVA_BENCHMARK: ==================================================
+I (7757) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (7767) BAVA_BENCHMARK: -> Temperature   : 847
+I (7767) BAVA_BENCHMARK: -> Humidity      : 848
+I (7777) BAVA_BENCHMARK: -> Pressure      : 1412
+I (7777) BAVA_BENCHMARK: -> System Status : 144
+I (7777) BAVA_BENCHMARK: -> Parse Latency  : 81 us
+I (7787) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (7797) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (7797) BAVA_BENCHMARK: ==================================================
+I (7807) BAVA_BENCHMARK: ==================================================
+I (7807) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (7817) BAVA_BENCHMARK: -> Temperature   : 848
+I (7817) BAVA_BENCHMARK: -> Humidity      : 850
+I (7827) BAVA_BENCHMARK: -> Pressure      : 1413
+I (7827) BAVA_BENCHMARK: -> System Status : 145
+I (7837) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (7837) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (7847) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (7847) BAVA_BENCHMARK: ==================================================
+I (7867) BAVA_BENCHMARK: ==================================================
+I (7867) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (7867) BAVA_BENCHMARK: -> Temperature   : 850
+I (7877) BAVA_BENCHMARK: -> Humidity      : 854
+I (7877) BAVA_BENCHMARK: -> Pressure      : 1415
+I (7887) BAVA_BENCHMARK: -> System Status : 147
+I (7887) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (7897) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (7897) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (7907) BAVA_BENCHMARK: ==================================================
+I (7907) BAVA_BENCHMARK: ==================================================
+I (7917) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (7927) BAVA_BENCHMARK: -> Temperature   : 851
+I (7927) BAVA_BENCHMARK: -> Humidity      : 856
+I (7937) BAVA_BENCHMARK: -> Pressure      : 1416
+I (7937) BAVA_BENCHMARK: -> System Status : 148
+I (7937) BAVA_BENCHMARK: -> Parse Latency  : 81 us
+I (7947) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (7947) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (7957) BAVA_BENCHMARK: ==================================================
+I (7967) BAVA_BENCHMARK: ==================================================
+I (7967) BAVA_BENCHMARK: [BAVA METRICS] Struct Frame Received Successfully!
+I (7977) BAVA_BENCHMARK: -> Temperature   : 852
+I (7977) BAVA_BENCHMARK: -> Humidity      : 858
+I (7987) BAVA_BENCHMARK: -> Pressure      : 1417
+I (7987) BAVA_BENCHMARK: -> System Status : 149
+I (7997) BAVA_BENCHMARK: -> Parse Latency  : 80 us
+I (7997) BAVA_BENCHMARK: -> Free Heap      : 295388 bytes (0 Leaks)
+I (8007) BAVA_BENCHMARK: -> Action         : ACK Sent to STM32
+I (8007) BAVA_BENCHMARK: ==================================================
