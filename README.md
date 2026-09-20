@@ -7,6 +7,7 @@
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Language](https://img.shields.io/badge/Language-C99-blue.svg)](https://en.wikipedia.org/wiki/C99)
 [![Platform: ESP-IDF](https://img.shields.io/badge/Platform-ESP--IDF-red.svg)](https://docs.espressif.com/projects/esp-idf/)
+[![Platform: Zephyr](https://img.shields.io/badge/Platform-Zephyr_RTOS-blue.svg)](https://docs.zephyrproject.org/)
 [![Platform: STM32](https://img.shields.io/badge/Platform-STM32-blue.svg)](https://www.st.com/)
 [![Platform: Arduino](https://img.shields.io/badge/Platform-Arduino-00979D.svg)](https://www.arduino.cc/)
 [![Memory: 0 Dynamic Alloc](https://img.shields.io/badge/Memory-0%20Dynamic%20Alloc-brightgreen.svg)](#key-features)
@@ -26,10 +27,11 @@
 ---
 ## 📦 Bava Protocol Package Repositories & Registries
 
-| Ecosystem | Registry / Documentation | Installation / Quick Start |
+| Ecosystem | Registry / Documentation | Quick Start / Example App |
 | :--- | :--- | :--- |
-| **Espressif IDF** | [![Espressif Component Registry](https://img.shields.io/badge/Espressif-Component%20Registry-E7352C?style=flat&logo=espressif&logoColor=white)](https://components.espressif.com/components/nishanthraj707/bava/versions/1.0.1/readme?language=en) |`idf.py add-dependency "nishanthraj707/bava"`|
-| **Arduino IDE** | [![Arduino Library](https://img.shields.io/badge/Arduino-Library%20Reference-00979D?style=flat&logo=arduino&logoColor=white)](https://www.arduino.cc/reference/en/libraries/bava-protocol/) | `Arduino IDE > Library Manager > "Bava Protocol"` |
+| **Zephyr RTOS** | [![Zephyr Module](https://img.shields.io/badge/Zephyr-Module-blue?style=flat&logo=zephyr&logoColor=white)](https://docs.zephyrproject.org/) | [`examples/zephyr_demo`](examples/zephyr_demo/) |
+| **Espressif IDF** | [![Espressif Component Registry](https://img.shields.io/badge/Espressif-Component%20Registry-E7352C?style=flat&logo=espressif&logoColor=white)](https://components.espressif.com/components/nishanthraj707/bava/versions/1.0.1/readme?language=en) | [`examples/esp_demo`](examples/esp_demo/) |
+| **Arduino IDE** | [![Arduino Library](https://img.shields.io/badge/Arduino-Library%20Reference-00979D?style=flat&logo=arduino&logoColor=white)](https://www.arduino.cc/reference/en/libraries/bava-protocol/) | [`examples/arduino_demo`](examples/arduino_demo/) |
 
 ## 🚀 Why BAVA? (Protocol Comparison)
 
@@ -72,7 +74,7 @@ Official real-time hardware profiling data, microsecond execution latency measur
 | **RX Parse Latency (Receiver)** | Up to 251 µs ($O(N)$ scaling) | **~80 µs ($O(1)$ constant time)** | **Up to 68% Faster RX Parsing** |
 | **TX Framing Latency (Sender)** | 33 µs (Unprotected `snprintf`) | **84 µs (Full CRC-16 Framing)** | **Full Payload Protection** |
 | **Data Integrity / Drops** | ~50% Data Loss (Ghost Cycles) | **100% Delivery Success** | **Zero Data Corruption** |
-| **Dynamic Heap Footprint** | 0 Bytes | **0 Bytes ($O(1)$ Memory)** | **Zero Memory Leaks** |
+| **Dynamic Heap Footprint** | 0 Bytes(constant malloc & free) | **0 Bytes ($O(1)$ Memory)** | **Zero Memory Leaks** |
 
 See the complete empirical validation summary in **[performance.md](performance.md)** and full benchmark test logs in **[report.md](report.md)**.
 
@@ -86,7 +88,7 @@ BAVA uses a **Shared Object Dictionary** architecture. Local variables (integers
 sequenceDiagram
     autonumber
     participant ESP32 as ESP32 (Controller)
-    participant Bus as UART / SPI Bus
+    participant Bus as UART
     participant STM32 as STM32 / Arduino (Target Node)
 
     ESP32->>Bus: Transmit Frame [SYNC | BAVA_WRITE | ID: 0x05 | Speed: 150.0f | CRC]
@@ -136,38 +138,24 @@ All BAVA packets enforce byte-stuffing (`0x7D` escape character, XOR `0x20`) on 
 
 ## 🛠️ Installation & Setup
 
-### Installation
+### Installation & Ecosystem Setup
 
-**For ESP-IDF:**
+**For Zephyr RTOS Module:**
+Add BAVA Protocol to your project's `west.yml` manifest or enable via `prj.conf`:
+```properties
+CONFIG_BAVA_PROTOCOL=y
+```
+Full Zephyr application example available in **[examples/zephyr_demo/](examples/zephyr_demo/)**.
+
+**For ESP-IDF Component:**
 ```bash
 idf.py add-dependency "nishanthraj707/bava"
 ```
+Full ESP-IDF application example available in **[examples/esp_demo/](examples/esp_demo/)**.
 
-**For Arduino:**
-Search for "Bava Protocol" in the Arduino IDE Library Manager.
-
-### Arduino IDE / PlatformIO Integration
-For Arduino IDE or PlatformIO projects (AVR, ESP8266, ESP32, STM32duino):
-1. Copy `bava.h` and the `src/` files into your project's `src/` directory or `libraries/BAVA/`.
-2. Define or let the Arduino build framework automatically pass `-DARDUINO`.
-3. BAVA automatically maps `noInterrupts()`/`interrupts()` for critical sections, atomic locks with `yield()` for TX protection on boards like ESP8266/ESP32, and `millis()` for timestamp tracking.
-
-### ESP-IDF Component Integration
-To manually clone into your project's `components/` directory:
-
-```bash
-cd my_esp32_project/components
-git clone https://github.com/NishanthRaj707/bavaprotocol.git bava
-```
-
-Ensure your application's `main/CMakeLists.txt` registers the dependency:
-```cmake
-idf_component_register(
-    SRCS "main.c"
-    INCLUDE_DIRS "."
-    REQUIRES bava
-)
-```
+**For Arduino Framework:**
+Search for "Bava Protocol" in the Arduino IDE Library Manager or copy `bava.h` and `src/` into your project's `libraries/BAVA/`.
+Full Arduino sketch available in **[examples/arduino_demo/](examples/arduino_demo/)**.
 
 ### CMake / Generic C Projects (STM32, Bare-Metal, Linux Host)
 Add the source files and include directory directly in your build script:
@@ -179,118 +167,21 @@ target_link_libraries(my_app PRIVATE bava)
 
 ---
 
-## 🚀 Cross-Platform Quick Start (ESP-IDF UART Example)
+## 🚀 Cross-Platform Examples & Quick Starts
 
-Below is a complete production example showing how to integrate BAVA into ESP-IDF with a dedicated UART RX task, hardware transmission callback (`uart_write_bytes`), hardware timer ticks (`esp_log_timestamp()`), and hardware critical section locking.
+The repository contains complete, production-ready example projects for all supported target ecosystems in the [`examples/`](examples/) directory:
 
-```c
-#include <stdio.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "driver/uart.h"
-#include "esp_log.h"
+- **[Zephyr RTOS Demo (`examples/zephyr_demo/`)](examples/zephyr_demo/)**:
+  - [`CMakeLists.txt`](examples/zephyr_demo/CMakeLists.txt): Links Zephyr RTOS drivers and BAVA Protocol module.
+  - [`prj.conf`](examples/zephyr_demo/prj.conf): Configures UART driver and `CONFIG_BAVA_PROTOCOL=y`.
+  - [`src/main.c`](examples/zephyr_demo/src/main.c): Demonstrates Object Dictionary multi-variable teleports, `uart_poll_out`/`uart_poll_in` hardware handlers, and `k_msleep()` cooperative RTOS timing.
 
-// Bava protocol header file
-#include "bava.h"
+- **[ESP-IDF Component Demo (`examples/esp_demo/`)](examples/esp_demo/)**:
+  - [`CMakeLists.txt`](examples/esp_demo/CMakeLists.txt) & [`main/CMakeLists.txt`](examples/esp_demo/main/CMakeLists.txt): Standard ESP-IDF component build registration.
+  - [`main/main.c`](examples/esp_demo/main/main.c): Complete FreeRTOS integration featuring a dedicated UART RX task, FreeRTOS spinlocks (`taskENTER_CRITICAL`), error handlers, and periodic transmission (`uart_write_bytes`).
 
-#define UART_PORT_NUM      UART_NUM_1
-#define TXD_PIN            (17)
-#define RXD_PIN            (16)
-#define BUF_SIZE           (1024)
-
-static const char *TAG = "BAVA_APP";
-
-// Bava instance
-static bava_handle_t bava;
-
-// Registered Target Dictionary Variables
-static float motor_speed_rpm = 0.0f;
-static uint32_t sensor_status_flags = 0;
-
-// 1. Hardware Transmission Callback (ESP-IDF UART TX Wrapper)
-void esp32_uart_tx_cb(uint8_t *data, uint16_t size) {
-    uart_write_bytes(UART_PORT_NUM, (const char *)data, size);
-}
-
-// 2. Hardware Critical Section Callbacks for ISR Safety
-static portMUX_TYPE bava_spinlock = portMUX_INITIALIZER_UNLOCKED;
-
-void esp32_enter_critical(void) {
-    taskENTER_CRITICAL(&bava_spinlock);
-}
-
-void esp32_exit_critical(void) {
-    taskEXIT_CRITICAL(&bava_spinlock);
-}
-
-// 3. Error Callback for dropped packets / timeout events (Optional)
-void bava_error_handler(uint8_t id, uint8_t error_code) {
-    ESP_LOGE(TAG, "Timeout / Error on Variable ID 0x%02X (Code: 0x%02X)", id, error_code);
-}
-
-// 4. Dedicated UART Receive Task (Processes Incoming Byte Stream)
-static void uart_rx_task(void *arg) {
-    uint8_t rx_buf[128];
-    while (1) {
-        int rx_bytes = uart_read_bytes(UART_PORT_NUM, rx_buf, sizeof(rx_buf), pdMS_TO_TICKS(10));
-        for (int i = 0; i < rx_bytes; i++) {
-            // Process incoming byte through BAVA state machine
-            bava_process_byte(&bava, rx_buf[i]);
-        }
-
-    }
-}
-
-void app_main(void) {
-    // Configure UART Peripheral
-    const uart_config_t uart_config = {
-        .baud_rate = 115200,
-        .data_bits = UART_DATA_8_BITS,
-        .parity    = UART_PARITY_DISABLE,
-        .stop_bits = UART_STOP_BITS_1,
-        .flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
-        .source_clk = UART_SCLK_DEFAULT,
-    };
-    uart_driver_install(UART_PORT_NUM, BUF_SIZE * 2, 0, 0, NULL, 0);
-    uart_param_config(UART_PORT_NUM, &uart_config);
-    uart_set_pin(UART_PORT_NUM, TXD_PIN, RXD_PIN, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
-
-    // Initialize BAVA instance
-    bava_init(&bava, esp32_uart_tx_cb);
-    bava.enter_critical = esp32_enter_critical;
-    bava.exit_critical  = esp32_exit_critical;
-    bava.error_callback = bava_error_handler;
-
-    // Advance BAVA non-blocking timer using ESP-IDF system timestamp API
-    bava_tick(&bava, (uint32_t)esp_log_timestamp());    
-
-    // Register Object Dictionary Variables
-    bava_register_var(&bava, 0x01, &motor_speed_rpm, sizeof(motor_speed_rpm));
-    bava_register_var(&bava, 0x02, &sensor_status_flags, sizeof(sensor_status_flags));
-
-    ESP_LOGI(TAG, "BAVA Protocol Stack online. Listening on UART %d...", UART_PORT_NUM);
-
-    // Create RX Processing Task
-    xTaskCreate(uart_rx_task, "bava_rx_task", 4096, NULL, 10, NULL);
-
-    // Main Control Loop
-    while (1) {
-        // Check if remote node updated motor speed
-        if (bava_var_updated(&bava, 0x01)) {
-            ESP_LOGI(TAG, "Updated Motor Speed Target: %.2f RPM", motor_speed_rpm);
-            bava_var_clear_update_status(&bava, 0x01);
-        }
-
-        // Periodically transmit raw sensor status flags (ID 0x02)
-        sensor_status_flags++;
-        bava_send_raw_write(&bava, 0x02, (const uint8_t *)&sensor_status_flags, sizeof(sensor_status_flags));
-
-        vTaskDelay(pdMS_TO_TICKS(1000));
-    }
-}
-```
+- **[Arduino Framework Demo (`examples/arduino_demo/`)](examples/arduino_demo/)**:
+  - [`bava_arduino_demo.ino`](examples/arduino_demo/bava_arduino_demo.ino): Complete Arduino sketch featuring `Serial.write` hardware TX callbacks, `millis()` non-blocking tick management, and atomic locks with `yield()` support.
 
 ---
 

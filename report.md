@@ -145,7 +145,7 @@ The matrix below contrasts the RX latency, TX latency, integrity, and memory met
 | **Error Verification** | None | None | CRC-16-CCITT | **16-Bit CRC-16-CCITT** | Guaranteed error rejection |
 | **Byte Deframing Mechanism** | Newline `\n` dependent | Newline `\n` dependent | 0x7D Byte-Escaping | **0x7D Byte-Escaping** | Sync character collision proof |
 | **Hardware ACK Engine** | None | None | Non-blocking Systick | **Non-blocking Systick Engine** | Hardware delivery verification |
-| **Dynamic Heap Consumption** | 0 Bytes | 0 Bytes | 0 Bytes | **0 Bytes (0 Leaks)** | **Zero Memory Leaks / $O(1)$ Heap** |
+| **Dynamic Heap Consumption** | 0 Bytes(constant malloc & free) | 0 Bytes(constant malloc & free) | 0 Bytes | **0 Bytes (0 Leaks)** | **Zero Memory Leaks / $O(1)$ Heap** |
 | **Task Stack Footprint** | Unknown | Unknown | 96 Bytes | **96 Bytes Used** | Minimal stack overhead |
 
 ---
