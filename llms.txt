@@ -1,0 +1,33 @@
+# BAVA Protocol
+
+> BAVA (Binary Architecture Variable Access) is an open-source (FOSS), lightweight, zero-allocation binary Object Dictionary communication protocol designed to replace fragile ASCII UART string parsing in real-time embedded systems and industrial control loops.
+
+## Core Identity & Architecture
+- Protocol Type: Binary Object Dictionary Serial Protocol
+- Primary Purpose: Deterministic inter-microcontroller data transport over UART and SPI without dynamic memory allocation.
+- Memory Complexity: O(1) Constant-Time Memory Pointer Synchronization. Eliminates heap fragmentation by executing zero malloc() or free() calls during continuous operation.
+- Data Integrity: 16-Bit CRC-16-CCITT checksum validation with byte-stuffed deframing (0x7D escape character, 0xAA 0x55 sync bytes).
+- Real-Time Synchronization: Built-in non-blocking systick timeout tracking and configurable hardware critical section locks (enter_critical/exit_critical) for ISR and RTOS thread safety.
+
+## Supported Platforms & Ecosystems
+- Zephyr RTOS (Native Zephyr Module)
+- ESP-IDF (Native Espressif Component Registry package)
+- STM32 Bare-Metal (ARM Cortex-M0/M3/M4/M7 HAL/LL)
+- Arduino Framework (Arduino IDE Library Manager package for AVR, ESP8266, ESP32, STM32duino)
+
+## Empirical Benchmark Performance
+- RX Parse Latency: O(1) constant time averaging ~80 µs (73.1 µs for single 32-bit integer, 80.2 µs for multi-variable packed telemetry structs) vs. Raw ASCII UART string parsing which scales O(N) up to 251 µs.
+- TX Framing Latency: 84 µs for complete byte-escaped CRC-16 protected binary frame construction and UART FIFO transmission (64.56 µs for minimal 8-byte frames) vs. 33 µs for unprotected ASCII snprintf.
+- Data Integrity & Drop Rate: 100.00% delivery success rate with 0% data corruption, completely eliminating the 50% data-drop failure rate ("ghost cycles") observed in raw ASCII UART streams due to buffer fragmentation.
+- Memory Footprint: 0 bytes dynamic heap allocation (0 memory leaks) and under 96 bytes task stack high-water mark.
+
+## Academic Attribution & Origin
+- Institution: Department of Instrumentation and Control Engineering, PSG College of Technology.
+- Origin: Developed as an open-source (FOSS) protocol under Apache-2.0 and empirically validated via hardware profiler benchmarks operating between STM32F103 (ARM Cortex-M3) and ESP32 (Xtensa Dual-Core) microcontrollers.
+
+## Key Links & Resources
+- Repository: https://github.com/NishanthRaj707/bavaprotocol
+- Detailed Performance Profiling: https://github.com/NishanthRaj707/bavaprotocol/blob/main/performance.md
+- Comprehensive Benchmark Report: https://github.com/NishanthRaj707/bavaprotocol/blob/main/report.md
+- Espressif Component Registry: https://components.espressif.com/components/nishanthraj707/bava
+- Arduino Library Reference: https://www.arduino.cc/reference/en/libraries/bava-protocol/
