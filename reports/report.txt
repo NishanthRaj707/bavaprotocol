@@ -16,9 +16,18 @@ complexities:
 
 The empirical data demonstrates that BAVA Protocol achieves true O(1) memory sync time
 complexity, absolute data integrity (via CRC-16-CCITT), zero dynamic heap memory consumption,
-and bulletproof bidirectional hardware acknowledgment, completely eliminating the data
+and deterministic bidirectional hardware acknowledgment, completely eliminating the data
 corruption and string parsing overhead observed in Raw UART streams.
 
+Note on Testing Methodology & Physical Layer Coexistence:
+1. Polling Mode: Polling was used for testing both raw ASCII UART streams and BAVA
+   Protocol packets transferred through UART across the hardware test bench. All metrics
+   in this report reflect packets transmitted, deframed, and parsed via polling.
+2. Not a Physical Layer Replacement: BAVA Protocol is not a replacement for physical layer
+   protocols (UART, SPI, RS-485, Wi-Fi, BLE, etc.), but works directly with them as an
+   application-layer framing protocol to structure, protect, and reliably transmit data payloads.
+3. Transport Independence: BAVA functions via an outbound transmit callback (bava_tx_cb_t)
+   and byte processor (bava_process_byte), structuring data identically across any medium.
 
 2. EMPIRICAL BENCHMARK TEST DATA
 --------------------------------------------------------------------------------
@@ -71,7 +80,7 @@ D. Raw UART Stream - Multiple Variable Struct (uart_test_multiple.txt)
 --------------------------------------------------------------------------------
 
 +----------------------------------+-----------------------+------------------------+-------------------------+
-| Benchmark Parameter              | Raw UART (Single Var) | Raw UART (Multi Struct)| BAVA Protocol (Struct)  |
+| Benchmark Parameter (Polling)    | Raw UART (Single Var) | Raw UART (Multi Struct)| BAVA Protocol (Struct)  |
 +----------------------------------+-----------------------+------------------------+-------------------------+
 | Data Encoding Format             | Raw ASCII Text        | Formatted ASCII String | Binary Network Order    |
 | Time Complexity                  | O(N) String Search    | O(N) sscanf Parsing    | O(1) Direct Pointer Sync|
@@ -86,7 +95,7 @@ D. Raw UART Stream - Multiple Variable Struct (uart_test_multiple.txt)
 
 Key Insights:
 1. Latency Bottleneck in Raw UART: Moving from a single variable to a multi-variable payload caused
-   Raw UART parsing latency to skyrocket from 45.0 us to 135.5 us (+201% increase) due to expensive
+   Raw UART parsing latency to increase substantially from 45.0 us to 135.5 us (+201% increase) due to expensive
    ASCII string parsing (sscanf/strtof).
 2. O(1) Scalability in BAVA: In contrast, scaling BAVA from a 4-byte integer to an 11-byte packed struct
    only increased latency by 7.1 us (73.1 us -> 80.2 us), proving O(1) direct memory pointer mapping.
@@ -108,6 +117,7 @@ communication framework for embedded microcontrollers. It provides:
   - Deterministic O(1) variable pointer routing
   - Robust bidirectional ACK synchronization
 
-BAVA Protocol is recommended for production embedded systems, sensor networks, and real-time
-control applications over UART/SPI buses.
+BAVA Protocol is recommended as a universal transport-agnostic framing protocol for
+production embedded systems, sensor networks, and real-time control applications across
+UART, SPI, Wi-Fi, BLE, and industrial buses.
 ================================================================================

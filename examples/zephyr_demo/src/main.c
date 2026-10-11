@@ -2,7 +2,7 @@
  * SPDX-License-Identifier: Apache-2.0
  * BAVA Protocol Zephyr RTOS Demo Application
  *
- * Demonstrates Object Dictionary multi-variable teleports, hardware UART polling,
+ * Demonstrates Object Dictionary multi-variable memory synchronization, hardware UART polling,
  * zero-allocation binary framing, and Zephyr thread sleep timing.
  */
 

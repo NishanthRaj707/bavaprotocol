@@ -55,7 +55,7 @@
 // Define the Error Callback function signature
 typedef void (*bava_error_cb_t)(uint8_t id, uint8_t error_code);
 
-// BAVA TX CALLBACK ----> user should register the function
+// BAVA TX CALLBACK ----> user registers function to transmit framed bytes over any transport (UART, SPI, Wi-Fi, BLE, etc.)
 typedef void (*bava_tx_cb_t)(const uint8_t* data, uint16_t size);
 typedef void (*bava_lock_cb_t)(void);
 
@@ -96,7 +96,7 @@ typedef struct
     uint8_t rx_payload[BAVA_MAX_PAYLOAD];
 
     uint8_t pending_ack_id;      // The ID we just sent
-    uint8_t pending_ack_cmd;     // Was it READ or WRITE?
+    uint8_t pending_ack_cmd;     
     volatile bool is_waiting_ack; // Blocks new TX until true or timeout
 
     uint8_t tx_buffer[((BAVA_MAX_PAYLOAD + 5) * 2) + 2];
@@ -150,6 +150,7 @@ static inline uint32_t bava_htonl(uint32_t val) {
 void bava_tick(bava_handle_t* bava_handle, uint32_t system_tick_ms);
 void bava_init(bava_handle_t* bava_handle, bava_tx_cb_t bava_tx_callback);
 int8_t bava_register_var(bava_handle_t* bava_handle, uint8_t id, void* variable_pointer, uint8_t variable_size);
+// Non-blocking stream byte parser: feed incoming bytes from any transport (UART, SPI, Wi-Fi, BLE, etc.)
 void bava_process_byte(bava_handle_t *bava_handle, uint8_t byte);
 void bava_send_write(bava_handle_t* bava_handle, uint8_t id);
 void bava_send_raw_write(bava_handle_t* bava_handle, uint8_t id, const uint8_t* pointer, uint8_t len);

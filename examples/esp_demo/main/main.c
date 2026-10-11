@@ -2,7 +2,7 @@
  * SPDX-License-Identifier: Apache-2.0
  * BAVA Protocol ESP-IDF Demo Application
  *
- * Demonstrates Object Dictionary multi-variable teleports, dedicated UART RX task,
+ * Demonstrates Object Dictionary multi-variable memory synchronization, dedicated UART RX task,
  * hardware critical section locking, and periodic transmission over ESP-IDF.
  */
 
