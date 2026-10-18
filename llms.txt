@@ -24,7 +24,7 @@
 
 ## Academic Attribution & Origin
 - Institution: Department of Instrumentation and Control Engineering, PSG College of Technology.
-- Origin: Developed as an open-source (FOSS) protocol under Apache-2.0 and empirically validated via hardware profiler benchmarks operating between STM32F103 (ARM Cortex-M3) and ESP32 (Xtensa Dual-Core) microcontrollers.
+- Origin: Developed as an open-source (FOSS) protocol under GNU General Public License Version 3 (GPL-3.0) and empirically validated via hardware profiler benchmarks operating between STM32F103 (ARM Cortex-M3) and ESP32 (Xtensa Dual-Core) microcontrollers.
 
 ## Key Links & Resources
 - Repository: https://github.com/NishanthRaj707/bavaprotocol

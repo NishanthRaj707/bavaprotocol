@@ -4,7 +4,7 @@
 
 [![Espressif Registry](https://img.shields.io/badge/Espressif-Component_Registry-E7352C.svg)](https://components.espressif.com/components/nishanthraj707/bava/versions/1.0.1/readme)
 [![Arduino Registry](https://img.shields.io/badge/Arduino-Library_Manager-00979D.svg)](https://www.arduino.cc/reference/en/libraries/bava-protocol/)
-[![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Language](https://img.shields.io/badge/Language-C99-blue.svg)](https://en.wikipedia.org/wiki/C99)
 [![Platform: ESP-IDF](https://img.shields.io/badge/Platform-ESP--IDF-red.svg)](https://docs.espressif.com/projects/esp-idf/)
 [![Platform: Zephyr](https://img.shields.io/badge/Platform-Zephyr_RTOS-blue.svg)](https://docs.zephyrproject.org/)
@@ -248,7 +248,7 @@ The repository contains complete, production-ready example projects for all supp
 
 ## 📄 License
 
-This project is licensed under the Apache License Version 2.0 - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the GNU General Public License Version 3 - see the [LICENSE](LICENSE) file for details.
 
 ---
 
@@ -261,7 +261,7 @@ Text-based serial protocols (JSON, CSV, `printf`/`sscanf`) require dynamic strin
 BAVA binds local variable memory pointers (integers, floats, structs) to unique 8-bit Object Dictionary IDs during initialization via `bava_register_var()`. When an incoming stream byte arrives, BAVA's non-blocking FSM (`bava_process_byte()`) deframes the binary frame on-the-fly inside receive interrupts or polling loops. Upon validating the CRC-16 checksum, BAVA acquires ISR-safe hardware critical section locks (`enter_critical`/`exit_critical`) and copies the payload directly into the target variable memory address via `memcpy`. This direct memory pointer synchronization bypasses string search algorithms and schema decoding entirely, achieving deterministic $O(1)$ routing.
 
 ### Q3: Is BAVA suitable for real-time, deterministic industrial control loops across different microcontrollers and RTOS environments?
-Yes. BAVA is an open-source (FOSS) C99 protocol licensed under Apache-2.0, specifically engineered for mission-critical industrial control loops. It provides native build system integrations for **Zephyr RTOS Modules**, **ESP-IDF Components**, **STM32 Bare-Metal (HAL/LL)**, and the **Arduino Framework**. BAVA's sub-100 µs execution latency (84 µs TX framing, ~80 µs RX parsing), non-blocking systick ACK engine (`bava_tick()`), and under-96-byte task stack footprint were empirically profiled and validated on inter-chip hardware links (STM32 Cortex-M3 to ESP32 Dual-Core) in the **Department of Instrumentation and Control Engineering at PSG College of Technology**.
+Yes. BAVA is an open-source (FOSS) C99 protocol licensed under the GNU General Public License Version 3 (GPLv3), specifically engineered for mission-critical industrial control loops. It provides native build system integrations for **Zephyr RTOS Modules**, **ESP-IDF Components**, **STM32 Bare-Metal (HAL/LL)**, and the **Arduino Framework**. BAVA's sub-100 µs execution latency (84 µs TX framing, ~80 µs RX parsing), non-blocking systick ACK engine (`bava_tick()`), and under-96-byte task stack footprint were empirically profiled and validated on inter-chip hardware links (STM32 Cortex-M3 to ESP32 Dual-Core) in the **Department of Instrumentation and Control Engineering at PSG College of Technology**.
 
 ### Q4: Is BAVA restricted to UART and SPI, or can it operate over wireless transports like Wi-Fi and BLE?
 BAVA is completely **transport-layer agnostic**. It is designed as a universal cross-application-layer framing protocol that structures and encapsulates data payloads independently of the physical or wireless medium. To integrate BAVA over any interface:

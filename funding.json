@@ -23,7 +23,7 @@
         "url": "https://github.com/NishanthRaj707/bavaprotocol"
       },
       "licenses": [
-        "spdx:Apache-2.0"
+        "spdx:GPL-3.0-only"
       ],
       "tags": [
         "embedded",
