@@ -68,7 +68,7 @@ static void bava_add_escape_byte(uint8_t* buffer, uint16_t* idx, uint8_t byte)
     }
 }
 
-static void bava_internal_send_packet(bava_handle_t *bava_handle, uint8_t cmd, uint8_t id, const uint8_t *payload, uint8_t len)
+static void bava_internal_send_packet(bava_handle_t *bava_handle, uint8_t cmd, uint8_t target_node_id, uint8_t id, const uint8_t *payload, uint8_t len)
 {
     // 1. Acquire Centralized Hardware TX Lock BEFORE touching shared tx_buffer
     bava_tx_lock(bava_handle);
@@ -79,9 +79,11 @@ static void bava_internal_send_packet(bava_handle_t *bava_handle, uint8_t cmd, u
     bava_handle->tx_buffer[tx_idx++] = BAVA_SYNC_BYTE2;
 
     bava_add_escape_byte(bava_handle->tx_buffer, &tx_idx, cmd);
-    if(bava_handle->is_bava_bus) {
-        bava_add_escape_byte(bava_handle->tx_buffer,&tx_idx,bava_handle->rx_sender_id);
-        bava_add_escape_byte(bava_handle->tx_buffer,&tx_idx,bava_handle->node_id);
+    
+    bool is_bus_cmd = (cmd == BAVA_BUS_READ || cmd == BAVA_BUS_WRITE || cmd == BAVA_BUS_READ_RESP || cmd == BAVA_BUS_WRITE_ACK);
+    if (is_bus_cmd) {
+        bava_add_escape_byte(bava_handle->tx_buffer, &tx_idx, target_node_id);
+        bava_add_escape_byte(bava_handle->tx_buffer, &tx_idx, bava_handle->node_id);
     }
     bava_add_escape_byte(bava_handle->tx_buffer, &tx_idx, id);
     bava_add_escape_byte(bava_handle->tx_buffer, &tx_idx, len);
@@ -117,7 +119,12 @@ static void bava_internal_send_packet(bava_handle_t *bava_handle, uint8_t cmd, u
             bava_add_escape_byte(bava_handle->tx_buffer, &tx_idx, formatted_payload[i]);
         }
         
-        uint16_t crc = bava_calculate_crc(cmd, id, payload_size, formatted_payload);
+        uint16_t crc;
+        if (is_bus_cmd) {
+            crc = bava_calculate_bus_crc(cmd, target_node_id, bava_handle->node_id, id, payload_size, formatted_payload);
+        } else {
+            crc = bava_calculate_crc(cmd, id, payload_size, formatted_payload);
+        }
 
         uint8_t crc_low = (uint8_t)(crc & 0xFF);
         uint8_t crc_high = (uint8_t)((crc >> 8) & 0xFF);
@@ -127,7 +134,12 @@ static void bava_internal_send_packet(bava_handle_t *bava_handle, uint8_t cmd, u
     }
     else
     {
-        uint16_t crc = bava_calculate_crc(cmd, id, 0, NULL);
+        uint16_t crc;
+        if (is_bus_cmd) {
+            crc = bava_calculate_bus_crc(cmd, target_node_id, bava_handle->node_id, id, 0, NULL);
+        } else {
+            crc = bava_calculate_crc(cmd, id, 0, NULL);
+        }
 
         uint8_t crc_low = (uint8_t)(crc & 0xFF);
         uint8_t crc_high = (uint8_t)((crc >> 8) & 0xFF);
@@ -141,8 +153,12 @@ static void bava_internal_send_packet(bava_handle_t *bava_handle, uint8_t cmd, u
     {
         bava_handle->tx_callback(bava_handle->tx_buffer, tx_idx);
     }
+    else if (bava_handle->bava_bus_tx_callback != NULL)
+    {
+        bava_handle->bava_bus_tx_callback(bava_handle->tx_buffer, tx_idx);
+    }
     
-    if (cmd == BAVA_WRITE || cmd == BAVA_READ) {
+    if (cmd == BAVA_WRITE || cmd == BAVA_READ || cmd == BAVA_BUS_WRITE || cmd == BAVA_BUS_READ) {
         bava_handle->is_waiting_ack = true;
         bava_handle->pending_ack_id = id;
         bava_handle->pending_ack_cmd = cmd;
@@ -181,7 +197,7 @@ void bava_send_write(bava_handle_t* bava_handle, uint8_t id)
             uint8_t len = bava_handle->variables[i].size;
 
             // Route through central locked transmission engine (handles endianness automatically)
-            bava_internal_send_packet(bava_handle, BAVA_WRITE, id, payload, len);
+            bava_internal_send_packet(bava_handle, BAVA_WRITE, 0, id, payload, len);
             return;
         }
     }
@@ -189,17 +205,17 @@ void bava_send_write(bava_handle_t* bava_handle, uint8_t id)
 
 void bava_send_read(bava_handle_t* bava_handle, uint8_t id)
 {
-    bava_internal_send_packet(bava_handle, BAVA_READ, id, NULL, 0);
+    bava_internal_send_packet(bava_handle, BAVA_READ, 0, id, NULL, 0);
 }
 
 void bava_send_raw_write(bava_handle_t* bava_handle, uint8_t id, const uint8_t* pointer, uint8_t len)
 {
-    bava_internal_send_packet(bava_handle, BAVA_WRITE, id, pointer, len);
+    bava_internal_send_packet(bava_handle, BAVA_WRITE, 0, id, pointer, len);
 }
 
 void bava_cmd_write_ack(bava_handle_t* bava_handle, uint8_t id)
 {
-    bava_internal_send_packet(bava_handle, BAVA_WRITE_ACK, id, NULL, 0);
+    bava_internal_send_packet(bava_handle, BAVA_WRITE_ACK, 0, id, NULL, 0);
 }
 
 void bava_cmd_read_request(bava_handle_t* bava_handle, uint8_t id)
@@ -210,40 +226,53 @@ void bava_cmd_read_request(bava_handle_t* bava_handle, uint8_t id)
         {
             const uint8_t* payload = (const uint8_t *)bava_handle->variables[i].var_ptr;
             uint8_t len = bava_handle->variables[i].size;
-            bava_internal_send_packet(bava_handle, BAVA_READ_RESP, id, payload, len);
+            bava_internal_send_packet(bava_handle, BAVA_READ_RESP, 0, id, payload, len);
             return;
         }
     }
 }
 
-void bava_bus_send_write(bava_handle_t* bava_handle, uint8_t id,uint8_t receiver_id)
+void bava_bus_cmd_write_ack(bava_handle_t* bava_handle, uint8_t id, uint8_t receiver_id)
 {
-    bava_handle->is_bava_bus = true;
-    bava_handle->rx_sender_id = receiver_id;
+    bava_internal_send_packet(bava_handle, BAVA_BUS_WRITE_ACK, receiver_id, id, NULL, 0);
+}
+
+void bava_bus_cmd_read_request(bava_handle_t* bava_handle, uint8_t id, uint8_t receiver_id)
+{
     for (uint8_t i = 0; i < bava_handle->var_count; i++)
     {
         if (bava_handle->variables[i].id == id)
-        {`
+        {
             const uint8_t* payload = (const uint8_t *)bava_handle->variables[i].var_ptr;
             uint8_t len = bava_handle->variables[i].size;
-
-            // Route through central locked transmission engine (handles endianness automatically)
-            bava_internal_send_packet(bava_handle, BAVA_WRITE, id, payload, len);
+            bava_internal_send_packet(bava_handle, BAVA_BUS_READ_RESP, receiver_id, id, payload, len);
             return;
         }
     }
 }
 
-void bava_bus_send_read(bava_handle_t* bava_handle, uint8_t id,uint8_t receiver_id)
+void bava_bus_send_write(bava_handle_t* bava_handle, uint8_t id, uint8_t receiver_id)
 {
-    bava_handle->is_bava_bus = true;
-    bava_handle->rx_sender_id = receiver_id;
-    bava_internal_send_packet(bava_handle, BAVA_READ, id, NULL, 0);
+    for (uint8_t i = 0; i < bava_handle->var_count; i++)
+    {
+        if (bava_handle->variables[i].id == id)
+        {
+            const uint8_t* payload = (const uint8_t *)bava_handle->variables[i].var_ptr;
+            uint8_t len = bava_handle->variables[i].size;
+
+            // Route through central locked transmission engine with BAVA_BUS_WRITE
+            bava_internal_send_packet(bava_handle, BAVA_BUS_WRITE, receiver_id, id, payload, len);
+            return;
+        }
+    }
 }
 
-void bava_bus_send_raw_write(bava_handle_t* bava_handle, uint8_t id, const uint8_t* pointer, uint8_t len,uint8_t receiver_id)
+void bava_bus_send_read(bava_handle_t* bava_handle, uint8_t id, uint8_t receiver_id)
 {
-    bava_handle->is_bava_bus = true;
-    bava_handle->rx_sender_id = receiver_id;
-    bava_internal_send_packet(bava_handle, BAVA_WRITE, id, pointer, len);
+    bava_internal_send_packet(bava_handle, BAVA_BUS_READ, receiver_id, id, NULL, 0);
+}
+
+void bava_bus_send_raw_write(bava_handle_t* bava_handle, uint8_t id, const uint8_t* pointer, uint8_t len, uint8_t receiver_id)
+{
+    bava_internal_send_packet(bava_handle, BAVA_BUS_WRITE, receiver_id, id, pointer, len);
 }

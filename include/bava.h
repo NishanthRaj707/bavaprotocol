@@ -49,11 +49,12 @@
 #define BAVA_WRITE_ACK 0x82 // Acknowledgement to the update
 
 
-//BAVA BUS COMMANDS
+// BAVA BUS COMMANDS
 #define BAVA_BUS_READ 0x11
 #define BAVA_BUS_WRITE 0x12
-#define BAVA_BUS_READ_RESP 0X71
+#define BAVA_BUS_READ_RESP 0x71
 #define BAVA_BUS_WRITE_ACK 0x72
+#define BAVA_BROADCAST_NODE_ID 0xFF
 
 // Define standard error codes
 #define BAVA_ERR_TIMEOUT 0x11
@@ -64,6 +65,7 @@ typedef void (*bava_error_cb_t)(uint8_t id, uint8_t error_code);
 
 // BAVA TX CALLBACK ----> user registers function to transmit framed bytes over any transport (UART, SPI, Wi-Fi, BLE, etc.)
 typedef void (*bava_tx_cb_t)(const uint8_t* data, uint16_t size);
+typedef void (*bava_bus_tx_cb_t)(const uint8_t* data, uint16_t size);
 typedef void (*bava_lock_cb_t)(void);
 
 // BAVA VARIABLE STORAGE STRUCTURE
@@ -175,8 +177,21 @@ void bava_var_clear_update_status(bava_handle_t* bava_handle, uint8_t id);
 
 // Bus related functions
 void bava_bus_init(bava_handle_t* bava_handle, bava_bus_tx_cb_t bava_bus_tx_callback, uint8_t node_id);
-void bava_bus_send_read(bava_handle_t* bava_handle, uint8_t id,uint8_t receiver_id);
-void bava_bus_send_write(bava_handle_t* bava_handle, uint8_t id,uint8_t receiver_id);
-void bava_bus_send_raw_write(bava_handle_t* bava_handle, uint8_t id, const uint8_t* pointer, uint8_t len,uint8_t receiver_id);
+void bava_bus_send_read(bava_handle_t* bava_handle, uint8_t id, uint8_t receiver_id);
+void bava_bus_send_write(bava_handle_t* bava_handle, uint8_t id, uint8_t receiver_id);
+void bava_bus_send_raw_write(bava_handle_t* bava_handle, uint8_t id, const uint8_t* pointer, uint8_t len, uint8_t receiver_id);
+
+// Checksum functions
+uint16_t bava_calculate_crc(uint8_t cmd, uint8_t id, uint8_t len, const uint8_t *payload);
+uint16_t bava_calculate_bus_crc(uint8_t cmd, uint8_t target_id, uint8_t sender_id, uint8_t id, uint8_t len, const uint8_t *payload);
+
+// Internal variable update
+void bava_internal_update(bava_handle_t* bava_handle, uint8_t id, const uint8_t* payload, uint8_t size);
+
+// Command / ACK responses
+void bava_cmd_write_ack(bava_handle_t* bava_handle, uint8_t id);
+void bava_cmd_read_request(bava_handle_t* bava_handle, uint8_t id);
+void bava_bus_cmd_write_ack(bava_handle_t* bava_handle, uint8_t id, uint8_t receiver_id);
+void bava_bus_cmd_read_request(bava_handle_t* bava_handle, uint8_t id, uint8_t receiver_id);
 
 #endif // BAVA_H

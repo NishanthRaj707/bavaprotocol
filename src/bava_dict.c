@@ -6,6 +6,8 @@ void bava_init(bava_handle_t* bava_handle, bava_tx_cb_t bava_tx_callback)
 {
     memset(bava_handle, 0, sizeof(bava_handle_t));
     bava_handle->tx_callback = bava_tx_callback;
+    bava_handle->bava_bus_tx_callback = NULL;
+    bava_handle->is_bava_bus = false;
     bava_handle->rx_state = BAVA_STATE_WAIT_SYNC1;
 
 #ifdef ESP_PLATFORM
@@ -31,9 +33,10 @@ void bava_init(bava_handle_t* bava_handle, bava_tx_cb_t bava_tx_callback)
 
 void bava_bus_init(bava_handle_t* bava_handle, bava_bus_tx_cb_t bava_bus_tx_callback, uint8_t node_id)
 {
-    bava_init(bava_handle, NULL);
+    bava_init(bava_handle, (bava_tx_cb_t)bava_bus_tx_callback);
     bava_handle->bava_bus_tx_callback = bava_bus_tx_callback;
     bava_handle->node_id = node_id;
+    bava_handle->is_bava_bus = true;
 }
 
 // Registering the variables

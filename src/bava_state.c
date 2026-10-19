@@ -4,6 +4,8 @@ extern uint16_t bava_calculate_crc(uint8_t cmd, uint8_t id, uint8_t len, const u
 extern void bava_internal_update(bava_handle_t* bava_handle, uint8_t id, const uint8_t* payload, uint8_t size);
 extern void bava_cmd_read_request(bava_handle_t* bava_handle, uint8_t id);
 extern void bava_cmd_write_ack(bava_handle_t* bava_handle, uint8_t id);
+extern void bava_bus_cmd_write_ack(bava_handle_t* bava_handle, uint8_t id, uint8_t receiver_id);
+extern void bava_bus_cmd_read_request(bava_handle_t* bava_handle, uint8_t id, uint8_t receiver_id);
 
 void bava_process_byte(bava_handle_t* bava_handle, uint8_t byte)
 {
@@ -54,22 +56,26 @@ void bava_process_byte(bava_handle_t* bava_handle, uint8_t byte)
 
         case BAVA_STATE_READ_CMD:
              bava_handle->rx_cmd = byte;
-             if(byte == BAVA_BUS_READ || byte == BAVA_BUS_WRITE || byte == BAVA_BUS_READ_RESP || byte == BAVA_BUS_WRITE_ACK) {
-                bava_handle->rx_state = BAVA_STATE_READ_NODE_ID;
-                bava_handle->is_bava_bus = true;
-             }else{
-                bava_handle->rx_state = BAVA_STATE_READ_ID;
-                bava_handle->is_bava_bus = false;
+             if (byte == BAVA_BUS_READ || byte == BAVA_BUS_WRITE || byte == BAVA_BUS_READ_RESP || byte == BAVA_BUS_WRITE_ACK) {
+                 bava_handle->rx_state = BAVA_STATE_READ_NODE_ID;
+             } else if (byte == BAVA_READ || byte == BAVA_WRITE || byte == BAVA_READ_RESP || byte == BAVA_WRITE_ACK) {
+                 bava_handle->rx_state = BAVA_STATE_READ_ID;
+             } else {
+                 bava_handle->rx_state = BAVA_STATE_WAIT_SYNC1;
              }
              break;
         
         case BAVA_STATE_READ_NODE_ID:
-             bava_handle->rx_node_id = byte ;
-             bava_handle->rx_state = BAVA_STATE_READ_SENDER_ID;
+             bava_handle->rx_node_id = byte;
+             if (bava_handle->is_bava_bus && (bava_handle->node_id == bava_handle->rx_node_id || bava_handle->rx_node_id == BAVA_BROADCAST_NODE_ID)) {
+                 bava_handle->rx_state = BAVA_STATE_READ_SENDER_ID;
+             } else {
+                 bava_handle->rx_state = BAVA_STATE_WAIT_SYNC1;
+             }
              break;
         
         case BAVA_STATE_READ_SENDER_ID:
-             bava_handle->rx_sender_id = byte ;
+             bava_handle->rx_sender_id = byte;
              bava_handle->rx_state = BAVA_STATE_READ_ID;
              break;
 
@@ -109,20 +115,39 @@ void bava_process_byte(bava_handle_t* bava_handle, uint8_t byte)
              bava_handle->rx_state = BAVA_STATE_READ_CRC2;
              break;
         
-        case BAVA_STATE_READ_CRC2:
+        case BAVA_STATE_READ_CRC2: {
              bava_handle->incoming_crc |= ((uint16_t)byte << 8);
 
-             uint16_t calculated_crc = bava_calculate_crc(bava_handle->rx_cmd, bava_handle->rx_id, bava_handle->rx_len, bava_handle->rx_payload);
+             uint16_t calculated_crc;
+             bool is_bus_cmd = (bava_handle->rx_cmd == BAVA_BUS_READ || bava_handle->rx_cmd == BAVA_BUS_WRITE ||
+                                bava_handle->rx_cmd == BAVA_BUS_READ_RESP || bava_handle->rx_cmd == BAVA_BUS_WRITE_ACK);
+
+             if (is_bus_cmd) {
+                 calculated_crc = bava_calculate_bus_crc(bava_handle->rx_cmd, bava_handle->rx_node_id, bava_handle->rx_sender_id, bava_handle->rx_id, bava_handle->rx_len, bava_handle->rx_payload);
+             } else {
+                 calculated_crc = bava_calculate_crc(bava_handle->rx_cmd, bava_handle->rx_id, bava_handle->rx_len, bava_handle->rx_payload);
+             }
 
              if (bava_handle->incoming_crc == calculated_crc) {
-                if (bava_handle->rx_cmd == BAVA_WRITE || bava_handle->rx_cmd == BAVA_BUS_WRITE) {
+                if (bava_handle->rx_cmd == BAVA_WRITE) {
                     bava_internal_update(bava_handle, bava_handle->rx_id, bava_handle->rx_payload, bava_handle->rx_len);
                     bava_cmd_write_ack(bava_handle, bava_handle->rx_id);
+                }
+                else if (bava_handle->rx_cmd == BAVA_BUS_WRITE) {
+                    bava_internal_update(bava_handle, bava_handle->rx_id, bava_handle->rx_payload, bava_handle->rx_len);
+                    // Prevent bus contention: only ACK unicast writes, never broadcast writes
+                    if (bava_handle->rx_node_id != BAVA_BROADCAST_NODE_ID) {
+                        bava_bus_cmd_write_ack(bava_handle, bava_handle->rx_id, bava_handle->rx_sender_id);
+                    }
                 }
                 else if (bava_handle->rx_cmd == BAVA_READ) {
                     bava_cmd_read_request(bava_handle, bava_handle->rx_id);
                 }
-                else if (bava_handle->rx_cmd == BAVA_WRITE_ACK || bava_handle->rx_cmd == BAVA_READ_RESP) || bava_handle->rx_cmd == BAVA_BUS_WRITE_ACK || bava_handle->rx_cmd == BAVA_BUS_READ_RESP{
+                else if (bava_handle->rx_cmd == BAVA_BUS_READ) {
+                    bava_bus_cmd_read_request(bava_handle, bava_handle->rx_id, bava_handle->rx_sender_id);
+                }
+                else if (bava_handle->rx_cmd == BAVA_WRITE_ACK || bava_handle->rx_cmd == BAVA_READ_RESP ||
+                         bava_handle->rx_cmd == BAVA_BUS_WRITE_ACK || bava_handle->rx_cmd == BAVA_BUS_READ_RESP) {
                     if (bava_handle->is_waiting_ack && bava_handle->pending_ack_id == bava_handle->rx_id) {
                         bava_handle->is_waiting_ack = false;
                     }
@@ -130,9 +155,10 @@ void bava_process_byte(bava_handle_t* bava_handle, uint8_t byte)
                         bava_internal_update(bava_handle, bava_handle->rx_id, bava_handle->rx_payload, bava_handle->rx_len);
                     }
                 }
-            }
-            // Reset for the next packet
-            bava_handle->rx_state = BAVA_STATE_WAIT_SYNC1;
-            break;
+             }
+             // Reset for the next packet
+             bava_handle->rx_state = BAVA_STATE_WAIT_SYNC1;
+             break;
         }
     }
+}
