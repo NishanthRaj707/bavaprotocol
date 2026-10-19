@@ -28,6 +28,14 @@ void bava_init(bava_handle_t* bava_handle, bava_tx_cb_t bava_tx_callback)
 #endif
 }
 
+
+void bava_bus_init(bava_handle_t* bava_handle, bava_bus_tx_cb_t bava_bus_tx_callback, uint8_t node_id)
+{
+    bava_init(bava_handle, NULL);
+    bava_handle->bava_bus_tx_callback = bava_bus_tx_callback;
+    bava_handle->node_id = node_id;
+}
+
 // Registering the variables
 int8_t bava_register_var(bava_handle_t* bava_handle, uint8_t id, void* variable_pointer, uint8_t variable_size)
 {

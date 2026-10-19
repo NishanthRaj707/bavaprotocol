@@ -48,6 +48,13 @@
 #define BAVA_WRITE 0x02 // Command to write/update the remote variable
 #define BAVA_WRITE_ACK 0x82 // Acknowledgement to the update
 
+
+//BAVA BUS COMMANDS
+#define BAVA_BUS_READ 0x11
+#define BAVA_BUS_WRITE 0x12
+#define BAVA_BUS_READ_RESP 0X71
+#define BAVA_BUS_WRITE_ACK 0x72
+
 // Define standard error codes
 #define BAVA_ERR_TIMEOUT 0x11
 #define BAVA_ERR_INVALID_PAYLOAD_LENGTH 0x12
@@ -74,6 +81,8 @@ typedef enum
     BAVA_STATE_WAIT_SYNC1,
     BAVA_STATE_WAIT_SYNC2,
     BAVA_STATE_READ_CMD,
+    BAVA_STATE_READ_NODE_ID,
+    BAVA_STATE_READ_SENDER_ID,
     BAVA_STATE_READ_ID,
     BAVA_STATE_READ_LEN,
     BAVA_STATE_READ_PAYLOAD,
@@ -85,11 +94,16 @@ typedef enum
 typedef struct 
 {
     bava_tx_cb_t tx_callback;  // user defined function to transmit data
+    bava_bus_tx_cb_t bava_bus_tx_callback; //user defined function to transmit data in the bus network
     bava_var_t variables[BAVA_MAX_VARIABLES]; // Collection of variables stored
+    uint8_t node_id;
     uint8_t var_count;
+    bool is_bava_bus;
     // Rx State Machine tracking
     volatile bava_rx_state_t rx_state;
     uint8_t rx_cmd;
+    uint8_t rx_node_id;
+    uint8_t rx_sender_id;
     uint8_t rx_id;
     uint8_t rx_len;
     uint8_t rx_idx;                 // Tracks bytes read into the payload buffer
@@ -150,6 +164,7 @@ static inline uint32_t bava_htonl(uint32_t val) {
 void bava_tick(bava_handle_t* bava_handle, uint32_t system_tick_ms);
 void bava_init(bava_handle_t* bava_handle, bava_tx_cb_t bava_tx_callback);
 int8_t bava_register_var(bava_handle_t* bava_handle, uint8_t id, void* variable_pointer, uint8_t variable_size);
+
 // Non-blocking stream byte parser: feed incoming bytes from any transport (UART, SPI, Wi-Fi, BLE, etc.)
 void bava_process_byte(bava_handle_t *bava_handle, uint8_t byte);
 void bava_send_write(bava_handle_t* bava_handle, uint8_t id);
@@ -157,5 +172,11 @@ void bava_send_raw_write(bava_handle_t* bava_handle, uint8_t id, const uint8_t* 
 void bava_send_read(bava_handle_t* bava_handle, uint8_t id);
 bool bava_var_updated(bava_handle_t* bava_handle, uint8_t id);
 void bava_var_clear_update_status(bava_handle_t* bava_handle, uint8_t id);
+
+// Bus related functions
+void bava_bus_init(bava_handle_t* bava_handle, bava_bus_tx_cb_t bava_bus_tx_callback, uint8_t node_id);
+void bava_bus_send_read(bava_handle_t* bava_handle, uint8_t id,uint8_t receiver_id);
+void bava_bus_send_write(bava_handle_t* bava_handle, uint8_t id,uint8_t receiver_id);
+void bava_bus_send_raw_write(bava_handle_t* bava_handle, uint8_t id, const uint8_t* pointer, uint8_t len,uint8_t receiver_id);
 
 #endif // BAVA_H
