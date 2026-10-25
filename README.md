@@ -1,6 +1,6 @@
 # BAVA Protocol
 
-BAVA (Binary Architecture Variable Access) is a zero-allocation, point-to-point binary framing protocol and object dictionary for microcontroller-to-microcontroller telemetry. It provides deterministic, constant-time variable synchronization over asynchronous serial links without dynamic heap allocation.
+BAVA is a zero-allocation, point-to-point binary framing protocol and object dictionary for microcontroller-to-microcontroller telemetry. It provides deterministic, constant-time variable synchronization over asynchronous serial links without dynamic heap allocation.
 
 [![Espressif Component Registry](https://img.shields.io/badge/Espressif-Component%20Registry-E7352C.svg)](https://components.espressif.com/components/nishanthraj707/bava/versions/1.0.1/readme?language=en)
 [![Arduino Library Reference](https://img.shields.io/badge/Arduino-Library%20Reference-00979D.svg)](https://www.arduino.cc/reference/en/libraries/bava-protocol/)
@@ -122,109 +122,23 @@ void loop(void) {
 }
 ```
 
-> **Important:** Calling `bava_tick(&bava_handle, system_tick_ms)` in your main loop or periodic task is mandatory. The protocol uses this tick to measure ACK round-trip time. If a remote node fails to acknowledge a transmission, `bava_tick()` triggers `error_callback` and releases `is_waiting_ack`, preventing subsequent outbound transmissions from becoming blocked.
+> Note: Calling `bava_tick(&bava_handle, system_tick_ms)` in your main loop or periodic task is required to service ACK timeouts and prevent the transmitter from locking.
 
 ---
 
-## API Reference and Functionality
+## API Reference
 
-BAVA provides a unified C interface defined in `include/bava.h`. All functions operate on a statically allocated `bava_handle_t` instance.
-
-### Core Lifecycle and Initialization
-
-#### `void bava_init(bava_handle_t* handle, bava_tx_cb_t tx_cb)`
-Initializes the protocol handle, clears the Object Dictionary, resets the finite state machine to `BAVA_STATE_WAIT_SYNC1`, and binds the hardware transmission callback.
-- `handle`: Pointer to the allocated `bava_handle_t` structure.
-- `tx_cb`: Pointer to the user-supplied hardware TX function (`void (*)(const uint8_t* data, uint16_t size)`).
-
-#### `int8_t bava_register_var(bava_handle_t* handle, uint8_t id, void* ptr, uint8_t size)`
-Registers an application variable into the local Object Dictionary, binding an 8-bit identifier directly to a target memory pointer.
-- `handle`: Pointer to the initialized `bava_handle_t`.
-- `id`: Unique variable identifier (0 to `BAVA_MAX_VARIABLES - 1`, default 0x00 to 0x1F).
-- `ptr`: Memory address of the local target variable (e.g., struct, float, uint32_t).
-- `size`: Size of the variable in bytes (must not exceed `BAVA_MAX_PAYLOAD`).
-- Return value: `0` on successful registration, `-1` if the dictionary is full or parameters are invalid.
-
-### Stream Processing and Reception
-
-#### `void bava_process_byte(bava_handle_t* handle, uint8_t byte)`
-Feeds a single byte from a serial interface into the non-blocking receiver finite state machine.
-- Reassembles frames across fragmented UART FIFO boundaries.
-- Executes 0x7D byte-destuffing on command, address, length, payload, and CRC fields.
-- Validates 16-bit CRC-16-CCITT before committing data.
-- Automatically copies validated write payloads into the registered pointer via `memcpy()` under hardware critical sections and sets the update flag.
-- Responds automatically with acknowledgment (`BAVA_WRITE_ACK`) or read response (`BAVA_READ_RESP`).
-- `handle`: Pointer to the active `bava_handle_t`.
-- `byte`: Raw incoming byte read from UART peripheral or queue.
-
-#### `bool bava_var_updated(bava_handle_t* handle, uint8_t id)`
-Checks whether the registered variable associated with `id` has received new validated data from a remote WRITE command.
-- `handle`: Pointer to the active `bava_handle_t`.
-- `id`: Variable identifier to query.
-- Return value: `true` if an update has arrived since the last clear, `false` otherwise.
-
-#### `void bava_var_clear_update_status(bava_handle_t* handle, uint8_t id)`
-Clears the update flag for the specified variable ID. Must be called after the application consumes the newly updated data.
-- `handle`: Pointer to the active `bava_handle_t`.
-- `id`: Variable identifier to clear.
-
-### Timing and Timeout Management
-
-#### `void bava_tick(bava_handle_t* handle, uint32_t system_tick_ms)`
-Drives the internal protocol timer and watchdog state machine.
-- Manages outbound ACK wait timeouts (`BAVA_TX_TIMEOUT`, default 100 ms).
-- Clears `is_waiting_ack` on timeout expiration to prevent transmitter deadlock.
-- Triggers the registered `error_callback` with `BAVA_ERR_TIMEOUT` when an expected ACK or response fails to arrive.
-- Resets stalled RX state machine parsers if inter-byte reception exceeds `BAVA_RX_TIMEOUT`.
-- `handle`: Pointer to the active `bava_handle_t`.
-- `system_tick_ms`: Current monotonic system timestamp in milliseconds (e.g., `millis()` on Arduino, `esp_log_timestamp()` on ESP-IDF, `k_uptime_get_32()` on Zephyr).
-
-### Outbound Transmission
-
-#### `void bava_send_write(bava_handle_t* handle, uint8_t id)`
-Reads the current value of the registered variable `id` from local memory, encodes it into a `BAVA_WRITE` frame, applies byte-stuffing, appends CRC-16, and transmits it via the registered TX callback.
-- `handle`: Pointer to the active `bava_handle_t`.
-- `id`: Variable identifier in the Object Dictionary.
-
-#### `void bava_send_raw_write(bava_handle_t* handle, uint8_t id, const uint8_t* ptr, uint8_t len)`
-Transmits an arbitrary byte buffer to variable `id` on the remote node without requiring prior local registration in the sender's Object Dictionary.
-- `handle`: Pointer to the active `bava_handle_t`.
-- `id`: Destination variable identifier on the remote node.
-- `ptr`: Pointer to the raw source data buffer.
-- `len`: Length of the payload in bytes (1 <= len <= `BAVA_MAX_PAYLOAD`).
-
-#### `void bava_send_read(bava_handle_t* handle, uint8_t id)`
-Transmits a `BAVA_READ` request to query the current value of variable `id` from the remote node. Upon reception, the remote node automatically responds with a `BAVA_READ_RESP` frame.
-- `handle`: Pointer to the active `bava_handle_t`.
-- `id`: Remote variable identifier to query.
-
-### Multi-Drop Bus Extensions
-
-For RS-485 or shared multidrop networks, BAVA provides dedicated bus functions:
-
-| Function | Signature | Functionality |
+| API | Signature | Functionality |
 | :--- | :--- | :--- |
-| `bava_bus_init` | `void bava_bus_init(bava_handle_t* handle, bava_bus_tx_cb_t cb, uint8_t node_id)` | Configures handle for bus topology with assigned node ID and TX callback. |
-| `bava_bus_send_write` | `void bava_bus_send_write(bava_handle_t* handle, uint8_t id, uint8_t receiver_id)` | Transmits unicast WRITE frame to a specific destination node ID. |
-| `bava_bus_send_raw_write` | `void bava_bus_send_raw_write(bava_handle_t* handle, uint8_t id, const uint8_t* ptr, uint8_t len, uint8_t receiver_id)` | Transmits arbitrary payload to a specific destination node ID. |
-| `bava_bus_send_read` | `void bava_bus_send_read(bava_handle_t* handle, uint8_t id, uint8_t receiver_id)` | Requests variable read from a specific destination node ID. |
-| `bava_bus_broadcast_write` | `void bava_bus_broadcast_write(bava_handle_t* handle, uint8_t id)` | Broadcasts variable write to all bus nodes (destination `0xFF`). |
-| `bava_bus_broadcast_raw_write` | `void bava_bus_broadcast_raw_write(bava_handle_t* handle, uint8_t id, const uint8_t* ptr, uint8_t len)` | Broadcasts arbitrary payload to all bus nodes (destination `0xFF`). |
-
-### Diagnostic Callbacks and Critical Sections
-
-The `bava_handle_t` structure provides configurable callback hooks for platform integration:
-
-- `error_callback`: Function pointer (`void (*)(uint8_t id, uint8_t error_code)`). Invoked on timeout (`0x11`) or invalid payload length (`0x12`).
-- `enter_critical` / `exit_critical`: Optional mutex or interrupt lock callbacks (`void (*)(void)`) used on bare-metal systems to protect shared memory during `memcpy()`.
-- `yield_callback`: Optional cooperative scheduling callback invoked during transmission waits.
-
-### Portable Utilities
-
-- `bava_htons(val)` / `bava_ntohs(val)`: 16-bit network byte order conversion.
-- `bava_htonl(val)` / `bava_ntohl(val)`: 32-bit network byte order conversion.
-- `bava_calculate_crc(cmd, id, len, payload)`: Computes CRC-16-CCITT over P2P frame fields.
-- `bava_calculate_bus_crc(cmd, target_id, sender_id, id, len, payload)`: Computes CRC-16-CCITT over bus frame fields.
+| `bava_init` | `void bava_init(bava_handle_t* handle, bava_tx_cb_t tx_cb)` | Initializes the handle context, resets the state machine, and registers the outbound hardware TX callback. |
+| `bava_register_var` | `int8_t bava_register_var(bava_handle_t* handle, uint8_t id, void* ptr, uint8_t size)` | Binds an 8-bit identifier (0 to 31) directly to a local variable pointer and byte size. Returns 0 on success, -1 if dictionary is full. |
+| `bava_process_byte` | `void bava_process_byte(bava_handle_t* handle, uint8_t byte)` | Feeds an incoming UART byte into the non-blocking FSM parser, handles byte-destuffing, verifies CRC-16, and commits payload to memory. |
+| `bava_tick` | `void bava_tick(bava_handle_t* handle, uint32_t system_tick_ms)` | Drives the internal timeout watchdog using millisecond timestamps. Handles ACK timeout expiration and releases the TX lock. |
+| `bava_send_write` | `void bava_send_write(bava_handle_t* handle, uint8_t id)` | Reads registered variable value from memory, encodes frame with CRC-16 and byte-stuffing, and transmits via TX callback. |
+| `bava_send_raw_write` | `void bava_send_raw_write(bava_handle_t* handle, uint8_t id, const uint8_t* ptr, uint8_t len)` | Transmits raw payload buffer data to a remote variable ID without requiring prior local registration. |
+| `bava_send_read` | `void bava_send_read(bava_handle_t* handle, uint8_t id)` | Transmits a READ request frame asking the remote node to return its current value for the specified variable ID. |
+| `bava_var_updated` | `bool bava_var_updated(bava_handle_t* handle, uint8_t id)` | Returns true if the registered variable received new validated data from a remote write since the last status clear. |
+| `bava_var_clear_update_status` | `void bava_var_clear_update_status(bava_handle_t* handle, uint8_t id)` | Resets the update flag for a registered variable ID after the application processes the new value. |
 
 ---
 
