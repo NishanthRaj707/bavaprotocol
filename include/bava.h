@@ -63,7 +63,7 @@
 // Define the Error Callback function signature
 typedef void (*bava_error_cb_t)(uint8_t id, uint8_t error_code);
 
-// BAVA TX CALLBACK ----> user registers function to transmit framed bytes over any transport (UART, SPI, Wi-Fi, BLE, etc.)
+// BAVA TX CALLBACK user registers function to transmit framed bytes over any transport (UART, SPI, Wi-Fi, BLE, etc.)
 typedef void (*bava_tx_cb_t)(const uint8_t* data, uint16_t size);
 typedef void (*bava_bus_tx_cb_t)(const uint8_t* data, uint16_t size);
 typedef void (*bava_lock_cb_t)(void);
@@ -180,6 +180,8 @@ void bava_bus_init(bava_handle_t* bava_handle, bava_bus_tx_cb_t bava_bus_tx_call
 void bava_bus_send_read(bava_handle_t* bava_handle, uint8_t id, uint8_t receiver_id);
 void bava_bus_send_write(bava_handle_t* bava_handle, uint8_t id, uint8_t receiver_id);
 void bava_bus_send_raw_write(bava_handle_t* bava_handle, uint8_t id, const uint8_t* pointer, uint8_t len, uint8_t receiver_id);
+void bava_bus_broadcast_write(bava_handle_t* bava_handle, uint8_t id);
+void bava_bus_broadcast_raw_write(bava_handle_t* bava_handle, uint8_t id, const uint8_t* pointer, uint8_t len);
 
 // Checksum functions
 uint16_t bava_calculate_crc(uint8_t cmd, uint8_t id, uint8_t len, const uint8_t *payload);

@@ -70,6 +70,14 @@ static void bava_add_escape_byte(uint8_t* buffer, uint16_t* idx, uint8_t byte)
 
 static void bava_internal_send_packet(bava_handle_t *bava_handle, uint8_t cmd, uint8_t target_node_id, uint8_t id, const uint8_t *payload, uint8_t len)
 {
+    bool is_bus_cmd = (cmd == BAVA_BUS_READ || cmd == BAVA_BUS_WRITE || cmd == BAVA_BUS_READ_RESP || cmd == BAVA_BUS_WRITE_ACK);
+    
+    // Guard against topology mismatch: prevent sending Bus frames on P2P handles or P2P frames on Bus handles
+    if (is_bus_cmd != bava_handle->is_bava_bus)
+    {
+        return;
+    }
+
     // 1. Acquire Centralized Hardware TX Lock BEFORE touching shared tx_buffer
     bava_tx_lock(bava_handle);
 
@@ -80,7 +88,6 @@ static void bava_internal_send_packet(bava_handle_t *bava_handle, uint8_t cmd, u
 
     bava_add_escape_byte(bava_handle->tx_buffer, &tx_idx, cmd);
     
-    bool is_bus_cmd = (cmd == BAVA_BUS_READ || cmd == BAVA_BUS_WRITE || cmd == BAVA_BUS_READ_RESP || cmd == BAVA_BUS_WRITE_ACK);
     if (is_bus_cmd) {
         bava_add_escape_byte(bava_handle->tx_buffer, &tx_idx, target_node_id);
         bava_add_escape_byte(bava_handle->tx_buffer, &tx_idx, bava_handle->node_id);
@@ -275,4 +282,14 @@ void bava_bus_send_read(bava_handle_t* bava_handle, uint8_t id, uint8_t receiver
 void bava_bus_send_raw_write(bava_handle_t* bava_handle, uint8_t id, const uint8_t* pointer, uint8_t len, uint8_t receiver_id)
 {
     bava_internal_send_packet(bava_handle, BAVA_BUS_WRITE, receiver_id, id, pointer, len);
+}
+
+void bava_bus_broadcast_write(bava_handle_t* bava_handle, uint8_t id)
+{
+    bava_bus_send_write(bava_handle, id, BAVA_BROADCAST_NODE_ID);
+}
+
+void bava_bus_broadcast_raw_write(bava_handle_t* bava_handle, uint8_t id, const uint8_t* pointer, uint8_t len)
+{
+    bava_bus_send_raw_write(bava_handle, id, pointer, len, BAVA_BROADCAST_NODE_ID);
 }

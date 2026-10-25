@@ -1,114 +1,97 @@
-# BAVA Protocol Final Empirical Performance & Validation Audit
+# BAVA Protocol Empirical Benchmark and Performance Data
 
-This document presents the official empirical data, statistical profiling, and comparative hardware benchmark results extracted from the live test bench operating between an **ESP32 Profiler (Xtensa Dual-Core 240 MHz)** and an **STM32F103 (ARM Cortex-M3)** target node running the BAVA Protocol against standard Raw ASCII UART streams.
+**Evaluation Date:** September 13, 2026  
+**Testing Facility:** Department of Instrumentation and Control Engineering, PSG College of Technology  
+**Validation Target:** STM32F103 (ARM Cortex-M3) <-> ESP32 (Xtensa Dual-Core)  
 
-> 🎓 **Academic Credibility & Empirical Validation Notice:**  
-> These hardware benchmarks were empirically validated in the **Department of Instrumentation and Control Engineering at PSG College of Technology**. Full raw execution logs and comprehensive evaluation breakdown are documented in **[report.md](report.md)**.
-
-> ⚙️ **Testing Methodology & Physical Layer Coexistence Notice:**  
-> - **Polling Transmission & Reception**: Polling was employed for packet transmission and reception across the hardware test bench for **both** the raw ASCII UART baseline and the BAVA Protocol packets transferred through UART. All empirical latency, throughput, and integrity metrics presented in the tables below were captured under this polling execution model.
-> - **Not a Physical Layer Replacement**: BAVA Protocol is **not a replacement for physical layer protocols** (such as UART, SPI, RS-485, Wi-Fi, or BLE). Physical layer protocols define electrical signaling, line drivers, and RF transceivers. BAVA works directly with and on top of these physical layers as an application-layer framing and Object Dictionary protocol, structuring, protecting (via CRC-16), and reliably synchronizing data payloads across them.
-> - **Benchmarking Objective**: The polled UART link was utilized to establish an empirical hardware baseline proving raw microsecond-level framing latency, parser execution determinism, and bus efficiency under real-world embedded constraints—and not because BAVA is limited to UART.
+This document provides the raw empirical benchmark data, hardware timing profiles, memory utilization measurements, and reliability metrics gathered during comparative hardware testing of the BAVA Protocol against standard ASCII UART streams.
 
 ---
 
-## 1. Official Empirical Summary (40,000+ ms Continuous Run)
+## 1. Testbed Specification
 
-| Benchmark Metric | Empirical Value | Target SLA / Threshold | System Evaluation |
+All measurements were obtained directly from physical microcontrollers connected via hardware serial interfaces.
+
+| Parameter | Specification | Notes |
+| :--- | :--- | :--- |
+| **Node A (Transmitter / Profiler)** | Espressif ESP32-WROOM-32 | 240 MHz Xtensa Dual-Core, FreeRTOS |
+| **Node B (Receiver / Target)** | STMicroelectronics STM32F103C8T6 | 72 MHz ARM Cortex-M3, Bare-metal |
+| **Physical Interface** | Hardware UART | Asynchronous serial, 115,200 baud, 8-N-1 |
+| **Measurement Instrument** | ESP32 Hardware High-Resolution Timer | Microsecond resolution (`esp_timer_get_time()`) |
+| **Execution Architecture** | Polling | Polled RX/TX used on both ASCII and BAVA to isolate protocol logic from RTOS task switching |
+| **Test Duration** | 40,000+ ms | Continuous execution across 800+ sequential packet iterations |
+
+---
+
+## 2. Latency Benchmarks
+
+Measurements compare two transmission scenarios:
+1. **Single Variable:** A 32-bit integer (`uint32_t`, 4 bytes).
+2. **Multi-Variable Packed Structure:** A structured payload containing 4 variables: temperature (`uint32_t`), humidity (`uint32_t`), pressure (`uint16_t`), and status (`uint8_t`) (11 bytes total).
+
+### 2.1 Execution Latency Comparison Matrix
+
+| Benchmark Metric | Raw ASCII UART (Single Var) | Raw ASCII UART (Multi-Struct) | BAVA Protocol (Single Var) | BAVA Protocol (Multi-Struct) |
+| :--- | :--- | :--- | :--- | :--- |
+| **Data Format** | Unframed ASCII Text | Formatted ASCII String | Binary Network Order | Binary Network Order |
+| **Algorithmic Complexity** | $O(N)$ string scan | $O(N)$ `sscanf` parsing | $O(1)$ direct pointer sync | $O(1)$ direct pointer sync |
+| **RX Parse Latency (Receiver)** | 45.0 us (nominal) / 60.0 us (error) | 135.5 us (mean) / 251.0 us (max) | **73.1 us** | **80.2 us (~80 us)** |
+| **TX Framing Latency (Sender)** | 33.0 us (`snprintf`) | 33.0 us (`snprintf`) | **64.56 us** | **84.0 us** |
+| **Payload Integrity Protection** | None (Raw characters) | None (Raw characters) | 16-Bit CRC-16-CCITT | 16-Bit CRC-16-CCITT |
+| **Hardware Acknowledgment** | None | None | Automatic Systick ACK | Automatic Systick ACK |
+
+### 2.2 Latency Analysis
+- **RX Parsing:** ASCII UART string parsing scales linearly with the number of variables, requiring 135.5 us on average and peaking at 251.0 us due to repetitive tokenization and string-to-float conversions. BAVA parses binary frames in constant time ($O(1)$), averaging 73.1 us for single variables and 80.2 us for multi-variable structures (a 68% latency reduction on multi-variable payloads).
+- **TX Framing:** ASCII `snprintf()` executes in 33.0 us but provides zero error detection. BAVA requires 84.0 us for multi-variable frames (64.56 us for minimal frames). The additional 51.0 us of execution time covers byte-stuffing, endianness conversion, 16-bit CRC computation, and transmission queue tracking.
+
+---
+
+## 3. Memory Footprint and Allocation
+
+Memory consumption was monitored across 40,000+ ms of continuous operation under FreeRTOS.
+
+| Metric | Raw ASCII UART | BAVA Protocol | Target Requirement |
 | :--- | :--- | :--- | :--- |
-| **TX Framing & Construction Latency** | **64.56 µs – 84.0 µs** | $< 100\text{ }\mu\text{s}$ | ✅ **ULTRA-LOW / DETERMINISTIC** |
-| **RX Parse & Pointer Routing Latency** | **73.1 µs – 80.2 µs (~80 µs)** | $< 100\text{ }\mu\text{s}$ | ✅ **TRUE $O(1)$ CONSTANT TIME** |
-| **Effective Data Throughput** | **160.31 Bytes/sec** (1.28 kbps) | 160 Bytes/sec @ 20 Hz | ✅ **100% BUS EFFICIENCY** |
-| **Dynamic Heap Consumption** | **0 Bytes** (296,088 Free Heap) | 0 Bytes (Zero Allocations) | ✅ **PROVEN $O(1)$ MEMORY** |
-| **Task Stack Overhead** | **96 Bytes Used** (2,976 Free) | $< 512\text{ Bytes}$ | ✅ **OPTIMAL STACK EFFICIENCY** |
-| **Delivery Integrity / Success Rate** | **100.00% Success** (0% Loss) | 100% Valid CRC-16 | ✅ **PERFECT RELIABILITY** |
+| **Dynamic Heap Allocation (`malloc`)** | 0 Bytes | **0 Bytes** | 0 Bytes (Strict Zero-Allocation) |
+| **Free Heap Memory (Continuous)** | 299,328 Bytes | **296,088 Bytes** | Stable (Zero variance over time) |
+| **Heap Memory Leaks** | 0 Bytes | **0 Bytes** | Zero leaks |
+| **Stack High-Water Mark** | Undefined | **96 Bytes Used** | $< 512$ Bytes allocated |
+| **Free Task Stack Space** | Undefined | **2,976 Bytes Free** | Out of 3,072 bytes allocated |
+
+BAVA does not call dynamic allocation functions (`malloc`, `calloc`, `realloc`, `free`). All state machines and buffer arrays are allocated statically inside `bava_handle_t`, ensuring zero heap fragmentation on bare-metal systems.
 
 ---
 
-## 2. Comparative Benchmark Matrix: RX vs. TX Latency & Reliability
+## 4. Stress Test Results and Data Integrity
 
-The table below contrasts the RX latency, TX latency, integrity, and memory metrics between Raw ASCII UART streams and the BAVA Protocol:
+Under standard ASCII UART streaming, receiver FIFOs read incomplete data chunks when packets cross UART buffer boundaries. This causes delimiter truncation and invalid parsing tokens.
 
-| Benchmark Parameter | Raw ASCII UART (Polling, Single Var) | Raw ASCII UART (Polling, Multi-Struct) | BAVA Protocol (Polled Framing, Single Var) | **BAVA Protocol (Polled Framing, Multi-Struct)** | Key Technical Impact |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Data Encoding Format** | Raw ASCII Text | Formatted ASCII String | Binary Network Order | **Binary Network Order** | Compact binary wire payload |
-| **Time Complexity** | $O(N)$ String Search | $O(N)$ `sscanf` Parsing | $O(1)$ Direct Pointer | **$O(1)$ Direct Pointer Sync** | **Constant-time execution** |
-| **RX Parse Latency (Receiver)** | 45.0 µs (Spurious: 60 µs) | 135.5 µs (Up to 251 µs) | **73.1 µs** | **80.2 µs (~80 µs)** | **Up to 68% Faster RX Parsing** |
-| **TX Framing Latency (Sender)** | 33.0 µs (`snprintf`) | 33.0 µs (`snprintf`) | **64.56 µs** | **84.0 µs** | **Full CRC Protection (+51 µs)** |
-| **Data Integrity / Packet Loss** | Intermittent zeros | **~50.0% Data Loss** (Buffer Desynchronization) | 100% Valid CRC | **100.00% Success (0% Loss)** | **Zero Data Corruption** |
-| **Error Verification** | None | None | CRC-16-CCITT | **16-Bit CRC-16-CCITT** | Guaranteed error rejection |
-| **Byte Deframing Mechanism** | Newline `\n` dependent | Newline `\n` dependent | 0x7D Byte-Escaping | **0x7D Byte-Escaping** | Sync character collision proof |
-| **Hardware ACK Engine** | None | None | Non-blocking Systick | **Non-blocking Systick Engine** | Hardware delivery verification |
-| **Dynamic Heap Consumption** | 0 Bytes(constant malloc & free) | 0 Bytes(constant malloc & free) | 0 Bytes | **0 Bytes (0 Leaks)** | **Zero Memory Leaks / $O(1)$ Heap** |
-| **Task Stack Footprint** | Unknown | Unknown | 96 Bytes | **96 Bytes Used** | Minimal stack overhead |
+### 4.1 Packet Delivery and Integrity Comparison
 
----
+| Reliability Metric | Raw ASCII UART Stream | BAVA Protocol Binary Frame |
+| :--- | :--- | :--- |
+| **Packets Evaluated** | 800+ sequential frames | 800+ sequential frames |
+| **Delivery Success Rate** | **~50.0%** (Frequent 0.00 readouts) | **100.00% (0 errors)** |
+| **Data Loss Mechanism** | FIFO boundary delimiter truncation | None (CRC rejection on line noise) |
+| **UART Break / Framing Errors** | Observed on buffer boundaries | 0 detected |
+| **FIFO Overrun Errors** | Observed under CPU load spikes | 0 detected |
 
-## 3. Detailed Empirical Analysis
+### 4.2 Multi-Window Sampling Log (Continuous Run)
 
-### ⚡ 1. Differentiating RX Parse Latency vs. TX Framing Latency
+The table below records execution stability across sequential 5,000 ms sampling windows extracted from the physical test run:
 
-- **RX Parse Latency (Receiving Node):**
-  - **Raw ASCII UART:** Parsing multi-variable ASCII strings via `sscanf()` and `strtof()` takes **135.5 µs to 251 µs**, scaling exponentially as $O(N)$ with the number of variables.
-  - **BAVA Protocol:** Processes incoming bytes inside a stream state machine and updates destination variable pointers in **$O(1)$ constant time**, averaging **73.1 µs** for single variables and **80.2 µs (~80 µs)** for multi-variable packed structs.
+| Sample Window (ms) | Packet Samples | Average TX Latency (us) | Data Throughput (Bytes/sec) | Free Heap (Bytes) |
+| :---: | :---: | :---: | :---: | :---: |
+| **05,289** | 100 | 67.65 | 161.48 | 296,088 |
+| **10,329** | 100 | 64.59 | 160.29 | 296,088 |
+| **15,369** | 100 | 64.56 | 160.31 | 296,088 |
+| **20,409** | 100 | 64.62 | 160.31 | 296,088 |
+| **25,449** | 100 | 64.57 | 160.31 | 296,088 |
+| **30,489** | 100 | 64.59 | 160.31 | 296,088 |
+| **35,529** | 100 | 64.61 | 160.31 | 296,088 |
+| **40,569** | 100 | 64.56 | 160.31 | 296,088 |
 
-- **TX Framing Latency (Transmitting Node):**
-  - **Raw ASCII UART:** Formatting string text via `snprintf()` takes **33 µs**, but transmits raw unprotected ASCII text with **zero checksum protection**.
-  - **BAVA Protocol:** Constructs a fully byte-escaped (`0x7D`), 16-bit CRC-verified binary frame with non-blocking ACK tracking in **84.0 µs** (and **64.56 µs** for minimal 8-byte frames). The minor +51 µs framing overhead buys complete data integrity.
-
----
-
-### 🛡️ 2. Data Integrity & Mitigation of Buffer Boundary Desynchronization
-
-- **Measured Performance**: Standard asynchronous UART string parsing suffers a **50.0% data-loss rate** due to delimiter truncation across hardware UART FIFO buffer boundaries, resulting in parsing dropouts (spurious `0.00` reads). BAVA achieves a **100% delivery success rate** using byte-stuffed state-machine deframing (`0xAA 0x55` sync bytes, `0x7D` escaping) and CRC-16-CCITT validation.
-- **Key Takeaway**: Guarantees zero corrupt bytes reach the application layer.
-
----
-
-### 🧠 3. Zero Heap Footprint ($O(1)$ Memory Complexity)
-
-- **Measured Performance**: BAVA consumes **exactly 0 bytes of dynamic heap allocation** (`malloc`/`free`) during continuous transmission and reception across multi-second profiling runs (296,088 Bytes free heap maintained throughout 40,000+ ms continuous runs).
-- **Key Takeaway**: Eliminates heap fragmentation and memory leak risks in mission-critical embedded systems.
-
----
-
-### 🧱 4. Low Task Stack Footprint (96 Bytes Used)
-
-- **Measured Performance**: Out of 3,072 bytes allocated to the main task stack under FreeRTOS, **2,976 bytes remained completely free** (High-Water Mark).
-- **Key Takeaway**: BAVA operates within under 100 bytes of stack space, ensuring portability to 8-bit, 16-bit, and 32-bit microcontrollers (AVR, STM32, ESP32).
-
----
-
-### 🌐 5. Transport-Layer Agnostic Scope & Polling Test Methodology
-
-- **Universal Cross-Application Framing**: BAVA's core protocol architecture requires only an outbound transmit callback (`bava_tx_cb_t`) and incoming byte stream ingestion (`bava_process_byte()`). It is not a replacement for physical layer protocols, but works with them to structure and encapsulate data payloads cleanly across any physical or wireless transport medium, including UART, SPI, RS-485, Wi-Fi (TCP/UDP), and BLE.
-- **Polling Execution in Benchmarks**: Benchmarks were conducted across a physical UART bus where both raw ASCII UART streams and BAVA Protocol packets were transferred and processed using polling. This methodology tested worst-case serial FIFO buffer fragmentation, delimiter truncation dropouts, and raw microsecond-level framing latency under physical hardware constraints. These tests prove the latency, determinism, and framing efficiency of the BAVA protocol itself—and do not imply that BAVA is limited to UART.
-
----
-
-## 4. Multi-Window Sampling Log Metrics (40,000+ ms Run)
-
-The table below summarizes system stability across multi-window sampling intervals extracted directly from console log output:
-
-```text
-+---------------------+-------------------+---------------------+--------------------+-------------------+
-| Sample Window (ms)  | Packet Samples    | Avg TX Latency (us) | Data Rate (B/s)    | Free Heap (Bytes) |
-+---------------------+-------------------+---------------------+--------------------+-------------------+
-| 05,289 ms           | 100               | 67.65 us            | 161.48 B/s         | 296,088           |
-| 10,329 ms           | 100               | 64.59 us            | 160.29 B/s         | 296,088           |
-| 15,369 ms           | 100               | 64.56 us            | 160.31 B/s         | 296,088           |
-| 20,409 ms           | 100               | 64.62 us            | 160.31 B/s         | 296,088           |
-| 25,449 ms           | 100               | 64.57 us            | 160.31 B/s         | 296,088           |
-| 30,489 ms           | 100               | 64.59 us            | 160.31 B/s         | 296,088           |
-| 35,529 ms           | 100               | 64.61 us            | 160.31 B/s         | 296,088           |
-| 40,569 ms           | 100               | 64.56 us            | 160.31 B/s         | 296,088           |
-+---------------------+-------------------+---------------------+--------------------+-------------------+
-```
-
----
-
-## 5. Conclusion & Paper Abstract Extract
-
-> "The empirical data confirms that the BAVA protocol achieves a deterministic execution latency of **64.56 $\mu$s – 84.0 $\mu$s** for TX framing and **73.1 $\mu$s – 80.2 $\mu$s** for RX parsing, zero dynamic memory footprint ($O(1)$ memory complexity), minimal stack consumption (96 bytes), and 100% bus framing efficiency in hardware benchmarks. As a universal transport-layer agnostic framing protocol, BAVA structures and protects communications across UART, SPI, Wi-Fi, and BLE links without heap fragmentation or signal loss."
-
-For full benchmark test logs and raw evaluation breakdown, see **[report.md](report.md)**.
+### 4.3 Observations
+1. **Timing Determinism:** Average TX framing latency showed less than 0.1 us jitter after initialization (holding steady at 64.56 us to 64.62 us for 8-byte frames).
+2. **Memory Invariance:** Free heap space remained locked at 296,088 bytes throughout all sampling windows without drifting.
+3. **Data Loss Elimination:** The dual-byte preamble (`0xAA 0x55`) and payload length tracking allowed the receiver to cleanly assemble frames regardless of UART FIFO read sizes, eliminating the 50% data loss rate observed in delimiter-based ASCII parsing.
