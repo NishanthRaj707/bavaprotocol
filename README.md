@@ -13,10 +13,11 @@ BAVA (Binary Architecture Variable Access) is a zero-allocation, point-to-point 
 
 ## Core Architecture
 
-- **Zero Dynamic Memory Allocation:** All state machines, dictionaries, and transmission buffers are statically declared. The protocol performs no calls to `malloc()`, `calloc()`, or `free()`.
-- **O(1) Direct Pointer Mapping:** Binds 8-bit identifiers directly to memory pointers. Received payloads are committed to destination addresses via `memcpy()` inside hardware critical sections, eliminating string parsing and schema decoding.
-- **Deterministic Stream Deframing:** Ingests serial bytes one at a time via a non-blocking finite state machine (`bava_process_byte`). Uses `0xAA 0x55` sync headers and `0x7D` byte-stuffing to maintain frame synchronization across UART FIFO boundaries.
-- **16-Bit CRC Data Integrity:** Verifies all incoming frames with a CRC-16-CCITT checksum before memory write, discarding corrupted frames at the parser layer.
+- Zero Dynamic Memory Allocation: All state machines, dictionaries, and transmission buffers are statically declared. The protocol performs no calls to malloc(), calloc(), or free().
+- O(1) Direct Pointer Mapping: Binds 8-bit identifiers directly to memory pointers. Received payloads are committed to destination addresses via memcpy() inside hardware critical sections, eliminating string parsing and schema decoding.
+- Deterministic Stream Deframing: Ingests serial bytes one at a time via a non-blocking finite state machine (bava_process_byte). Uses 0xAA 0x55 sync headers and 0x7D byte-stuffing to maintain frame synchronization across UART FIFO boundaries.
+- 16-Bit CRC Data Integrity: Verifies all incoming frames with a CRC-16-CCITT checksum before memory write, discarding corrupted frames at the parser layer.
+- Non-Blocking Timeout Watchdog: Tracks unacknowledged transactions via bava_tick without stalling thread execution or blocking ISRs.
 
 ---
 
@@ -24,17 +25,17 @@ BAVA (Binary Architecture Variable Access) is a zero-allocation, point-to-point 
 
 | Parameter | Specification | Notes |
 | :--- | :--- | :--- |
-| **Topology** | Point-to-Point (P2P) | Dual MCU direct link (e.g., STM32 to ESP32) |
-| **Language Standard** | ANSI C99 / C++ Compatible | Builds with `-Wall -Wextra -Werror -Wstrict-prototypes` |
-| **Heap Consumption** | 0 Bytes | Static memory allocation |
-| **Stack High-Water Mark** | 96 Bytes | Measured on FreeRTOS task stacks |
-| **RX Parse Latency** | 73.1 us - 80.2 us | Constant-time $O(1)$ scaling |
-| **TX Framing Latency** | 64.56 us - 84.0 us | Includes CRC-16 calculation and byte-stuffing |
-| **Data Integrity Verification** | CRC-16-CCITT (`0x1021`) | Initial value `0xFFFF` |
-| **Preamble Sequence** | `0xAA 0x55` | 2-byte frame delimiter |
-| **Byte-Stuffing Mechanism** | `0x7D` with XOR `0x20` | Escapes `0xAA` and `0x7D` bytes |
-| **Dictionary Capacity** | 32 Variables (`BAVA_MAX_VARIABLES`) | Compile-time constant |
-| **Payload Capacity** | 32 Bytes (`BAVA_MAX_PAYLOAD`) | Compile-time constant |
+| Topology | Point-to-Point (P2P) | Dual MCU direct link (e.g., STM32 to ESP32) |
+| Language Standard | ANSI C99 / C++ Compatible | Builds with -Wall -Wextra -Werror -Wstrict-prototypes |
+| Heap Consumption | 0 Bytes | Static memory allocation |
+| Stack High-Water Mark | 96 Bytes | Measured on FreeRTOS task stacks |
+| RX Parse Latency | 73.1 us - 80.2 us | Constant-time O(1) scaling |
+| TX Framing Latency | 64.56 us - 84.0 us | Includes CRC-16 calculation and byte-stuffing |
+| Data Integrity Verification | CRC-16-CCITT (0x1021) | Initial value 0xFFFF |
+| Preamble Sequence | 0xAA 0x55 | 2-byte frame delimiter |
+| Byte-Stuffing Mechanism | 0x7D with XOR 0x20 | Escapes 0xAA and 0x7D bytes |
+| Dictionary Capacity | 32 Variables (BAVA_MAX_VARIABLES) | Compile-time constant |
+| Payload Capacity | 32 Bytes (BAVA_MAX_PAYLOAD) | Compile-time constant |
 
 Empirical benchmarks and hardware testbed logs are detailed in [performance.md](performance.md). The architectural specification is documented in [report.md](report.md).
 
@@ -42,92 +43,198 @@ Empirical benchmarks and hardware testbed logs are detailed in [performance.md](
 
 ## Quick Start Guide
 
-The following example demonstrates bidirectional point-to-point communication between two microcontrollers.
+The example below demonstrates complete point-to-point integration modeled directly on the working implementations in [examples/arduino_demo/](examples/arduino_demo/), [examples/esp_demo/](examples/esp_demo/), and [examples/zephyr_demo/](examples/zephyr_demo/).
 
-### Node A (Transmitter / Controller)
-
-```c
-#include "bava.h"
-#include <stdio.h>
-
-// 1. Declare local variables to share
-static float target_velocity = 12.5f;
-static uint32_t system_status = 0x00000001;
-
-// 2. Hardware transmission driver callback
-static void uart_transmit_bytes(const uint8_t* data, uint16_t size) {
-    // Forward bytes to target UART peripheral
-    // e.g., uart_write_bytes(UART_NUM_1, (const char*)data, size);
-    for (uint16_t i = 0; i < size; i++) {
-        putchar(data[i]);
-    }
-}
-
-int main(void) {
-    bava_handle_t bava;
-
-    // 3. Initialize handle with TX callback
-    bava_init(&bava, uart_transmit_bytes);
-
-    // 4. Register variables into the Object Dictionary
-    bava_register_var(&bava, 0x01, &target_velocity, sizeof(target_velocity));
-    bava_register_var(&bava, 0x02, &system_status, sizeof(system_status));
-
-    // 5. Transmit an update for variable ID 0x01
-    bava_send_write(&bava, 0x01);
-
-    // 6. In loop or systick handler, advance non-blocking timeout engine
-    uint32_t current_time_ms = 100;
-    bava_tick(&bava, current_time_ms);
-
-    return 0;
-}
-```
-
-### Node B (Receiver / Target)
+### Embedded C / Arduino Example
 
 ```c
 #include "bava.h"
 
-static float received_velocity = 0.0f;
-static uint32_t received_status = 0;
+// 1. Define unique Object Dictionary variable identifiers (0 to 31)
+#define TELEMETRY_VAR_ID  0x01
 
-static void uart_transmit_ack(const uint8_t* data, uint16_t size) {
-    // Send ACK bytes back over UART
+// 2. Global protocol instance and bound application variable
+static bava_handle_t bava_handle;
+static uint8_t sys_telemetry = 1;
+static uint32_t last_tx_ms = 0;
+
+// 3. Hardware transmit callback: routes framed bytes to the physical UART
+static void hardware_uart_tx(const uint8_t* data, uint16_t size) {
+    if (data != NULL && size > 0) {
+        // Platform transmit routine
+        // Arduino: Serial.write(data, size);
+        // ESP-IDF: uart_write_bytes(UART_NUM_1, (const char*)data, size);
+        // Zephyr:  for (uint16_t i = 0; i < size; i++) uart_poll_out(dev, data[i]);
+        for (uint16_t i = 0; i < size; i++) {
+            putchar(data[i]);
+        }
+    }
 }
 
-int main(void) {
-    bava_handle_t bava;
+// 4. Optional error callback for timeout and framing alerts
+static void bava_error_handler(uint8_t id, uint8_t error_code) {
+    // Handle unacknowledged transaction timeout (0x11) or invalid payload (0x12)
+    (void)id;
+    (void)error_code;
+}
 
-    bava_init(&bava, uart_transmit_ack);
+void setup(void) {
+    // Initialize hardware serial interface (e.g., 115200 8-N-1)
+    
+    // Initialize BAVA handle with outbound TX callback
+    bava_init(&bava_handle, hardware_uart_tx);
+    bava_handle.error_callback = bava_error_handler;
 
-    // Register target memory destinations with matching IDs
-    bava_register_var(&bava, 0x01, &received_velocity, sizeof(received_velocity));
-    bava_register_var(&bava, 0x02, &received_status, sizeof(received_status));
+    // Register application variable into the Object Dictionary
+    int8_t status = bava_register_var(&bava_handle, TELEMETRY_VAR_ID, &sys_telemetry, sizeof(sys_telemetry));
+    if (status != 0) {
+        // Registration failed: dictionary full or invalid parameters
+    }
+}
 
-    // When a byte arrives in UART ISR or polling loop:
-    uint8_t rx_byte = 0xAA;
-    bava_process_byte(&bava, rx_byte);
-
-    // Check if variable 0x01 was updated by a validated frame
-    if (bava_var_updated(&bava, 0x01)) {
-        // Variable updated in memory: received_velocity is now valid
-        bava_var_clear_update_status(&bava, 0x01);
+void loop(void) {
+    // Step 1: Stream incoming UART bytes into BAVA state machine
+    // (Can also be called inside UART RX interrupt or dedicated RTOS task)
+    while (uart_has_bytes()) {
+        uint8_t incoming_byte = uart_read_byte();
+        bava_process_byte(&bava_handle, incoming_byte);
     }
 
-    return 0;
+    // Step 2: Check if registered variable was updated by a remote WRITE command
+    if (bava_var_updated(&bava_handle, TELEMETRY_VAR_ID)) {
+        bava_var_clear_update_status(&bava_handle, TELEMETRY_VAR_ID);
+        // sys_telemetry now contains the verified payload committed by memcpy
+    }
+
+    // Step 3: Advance BAVA protocol timer tick (CRITICAL)
+    // Feeds system uptime in milliseconds to service ACK timeouts and release TX lock
+    bava_tick(&bava_handle, get_system_uptime_ms());
+
+    // Step 4: Non-blocking periodic transmission (e.g., 20 Hz / every 50 ms)
+    uint32_t current_ms = get_system_uptime_ms();
+    if (current_ms - last_tx_ms >= 50) {
+        last_tx_ms = current_ms;
+
+        // Update local state and dispatch over the wire
+        sys_telemetry++;
+        bava_send_write(&bava_handle, TELEMETRY_VAR_ID);
+    }
 }
 ```
+
+> **Important:** Calling `bava_tick(&bava_handle, system_tick_ms)` in your main loop or periodic task is mandatory. The protocol uses this tick to measure ACK round-trip time. If a remote node fails to acknowledge a transmission, `bava_tick()` triggers `error_callback` and releases `is_waiting_ack`, preventing subsequent outbound transmissions from becoming blocked.
+
+---
+
+## API Reference and Functionality
+
+BAVA provides a unified C interface defined in `include/bava.h`. All functions operate on a statically allocated `bava_handle_t` instance.
+
+### Core Lifecycle and Initialization
+
+#### `void bava_init(bava_handle_t* handle, bava_tx_cb_t tx_cb)`
+Initializes the protocol handle, clears the Object Dictionary, resets the finite state machine to `BAVA_STATE_WAIT_SYNC1`, and binds the hardware transmission callback.
+- `handle`: Pointer to the allocated `bava_handle_t` structure.
+- `tx_cb`: Pointer to the user-supplied hardware TX function (`void (*)(const uint8_t* data, uint16_t size)`).
+
+#### `int8_t bava_register_var(bava_handle_t* handle, uint8_t id, void* ptr, uint8_t size)`
+Registers an application variable into the local Object Dictionary, binding an 8-bit identifier directly to a target memory pointer.
+- `handle`: Pointer to the initialized `bava_handle_t`.
+- `id`: Unique variable identifier (0 to `BAVA_MAX_VARIABLES - 1`, default 0x00 to 0x1F).
+- `ptr`: Memory address of the local target variable (e.g., struct, float, uint32_t).
+- `size`: Size of the variable in bytes (must not exceed `BAVA_MAX_PAYLOAD`).
+- Return value: `0` on successful registration, `-1` if the dictionary is full or parameters are invalid.
+
+### Stream Processing and Reception
+
+#### `void bava_process_byte(bava_handle_t* handle, uint8_t byte)`
+Feeds a single byte from a serial interface into the non-blocking receiver finite state machine.
+- Reassembles frames across fragmented UART FIFO boundaries.
+- Executes 0x7D byte-destuffing on command, address, length, payload, and CRC fields.
+- Validates 16-bit CRC-16-CCITT before committing data.
+- Automatically copies validated write payloads into the registered pointer via `memcpy()` under hardware critical sections and sets the update flag.
+- Responds automatically with acknowledgment (`BAVA_WRITE_ACK`) or read response (`BAVA_READ_RESP`).
+- `handle`: Pointer to the active `bava_handle_t`.
+- `byte`: Raw incoming byte read from UART peripheral or queue.
+
+#### `bool bava_var_updated(bava_handle_t* handle, uint8_t id)`
+Checks whether the registered variable associated with `id` has received new validated data from a remote WRITE command.
+- `handle`: Pointer to the active `bava_handle_t`.
+- `id`: Variable identifier to query.
+- Return value: `true` if an update has arrived since the last clear, `false` otherwise.
+
+#### `void bava_var_clear_update_status(bava_handle_t* handle, uint8_t id)`
+Clears the update flag for the specified variable ID. Must be called after the application consumes the newly updated data.
+- `handle`: Pointer to the active `bava_handle_t`.
+- `id`: Variable identifier to clear.
+
+### Timing and Timeout Management
+
+#### `void bava_tick(bava_handle_t* handle, uint32_t system_tick_ms)`
+Drives the internal protocol timer and watchdog state machine.
+- Manages outbound ACK wait timeouts (`BAVA_TX_TIMEOUT`, default 100 ms).
+- Clears `is_waiting_ack` on timeout expiration to prevent transmitter deadlock.
+- Triggers the registered `error_callback` with `BAVA_ERR_TIMEOUT` when an expected ACK or response fails to arrive.
+- Resets stalled RX state machine parsers if inter-byte reception exceeds `BAVA_RX_TIMEOUT`.
+- `handle`: Pointer to the active `bava_handle_t`.
+- `system_tick_ms`: Current monotonic system timestamp in milliseconds (e.g., `millis()` on Arduino, `esp_log_timestamp()` on ESP-IDF, `k_uptime_get_32()` on Zephyr).
+
+### Outbound Transmission
+
+#### `void bava_send_write(bava_handle_t* handle, uint8_t id)`
+Reads the current value of the registered variable `id` from local memory, encodes it into a `BAVA_WRITE` frame, applies byte-stuffing, appends CRC-16, and transmits it via the registered TX callback.
+- `handle`: Pointer to the active `bava_handle_t`.
+- `id`: Variable identifier in the Object Dictionary.
+
+#### `void bava_send_raw_write(bava_handle_t* handle, uint8_t id, const uint8_t* ptr, uint8_t len)`
+Transmits an arbitrary byte buffer to variable `id` on the remote node without requiring prior local registration in the sender's Object Dictionary.
+- `handle`: Pointer to the active `bava_handle_t`.
+- `id`: Destination variable identifier on the remote node.
+- `ptr`: Pointer to the raw source data buffer.
+- `len`: Length of the payload in bytes (1 <= len <= `BAVA_MAX_PAYLOAD`).
+
+#### `void bava_send_read(bava_handle_t* handle, uint8_t id)`
+Transmits a `BAVA_READ` request to query the current value of variable `id` from the remote node. Upon reception, the remote node automatically responds with a `BAVA_READ_RESP` frame.
+- `handle`: Pointer to the active `bava_handle_t`.
+- `id`: Remote variable identifier to query.
+
+### Multi-Drop Bus Extensions
+
+For RS-485 or shared multidrop networks, BAVA provides dedicated bus functions:
+
+| Function | Signature | Functionality |
+| :--- | :--- | :--- |
+| `bava_bus_init` | `void bava_bus_init(bava_handle_t* handle, bava_bus_tx_cb_t cb, uint8_t node_id)` | Configures handle for bus topology with assigned node ID and TX callback. |
+| `bava_bus_send_write` | `void bava_bus_send_write(bava_handle_t* handle, uint8_t id, uint8_t receiver_id)` | Transmits unicast WRITE frame to a specific destination node ID. |
+| `bava_bus_send_raw_write` | `void bava_bus_send_raw_write(bava_handle_t* handle, uint8_t id, const uint8_t* ptr, uint8_t len, uint8_t receiver_id)` | Transmits arbitrary payload to a specific destination node ID. |
+| `bava_bus_send_read` | `void bava_bus_send_read(bava_handle_t* handle, uint8_t id, uint8_t receiver_id)` | Requests variable read from a specific destination node ID. |
+| `bava_bus_broadcast_write` | `void bava_bus_broadcast_write(bava_handle_t* handle, uint8_t id)` | Broadcasts variable write to all bus nodes (destination `0xFF`). |
+| `bava_bus_broadcast_raw_write` | `void bava_bus_broadcast_raw_write(bava_handle_t* handle, uint8_t id, const uint8_t* ptr, uint8_t len)` | Broadcasts arbitrary payload to all bus nodes (destination `0xFF`). |
+
+### Diagnostic Callbacks and Critical Sections
+
+The `bava_handle_t` structure provides configurable callback hooks for platform integration:
+
+- `error_callback`: Function pointer (`void (*)(uint8_t id, uint8_t error_code)`). Invoked on timeout (`0x11`) or invalid payload length (`0x12`).
+- `enter_critical` / `exit_critical`: Optional mutex or interrupt lock callbacks (`void (*)(void)`) used on bare-metal systems to protect shared memory during `memcpy()`.
+- `yield_callback`: Optional cooperative scheduling callback invoked during transmission waits.
+
+### Portable Utilities
+
+- `bava_htons(val)` / `bava_ntohs(val)`: 16-bit network byte order conversion.
+- `bava_htonl(val)` / `bava_ntohl(val)`: 32-bit network byte order conversion.
+- `bava_calculate_crc(cmd, id, len, payload)`: Computes CRC-16-CCITT over P2P frame fields.
+- `bava_calculate_bus_crc(cmd, target_id, sender_id, id, len, payload)`: Computes CRC-16-CCITT over bus frame fields.
 
 ---
 
 ## Platform Examples
 
-Complete, working example projects for supported embedded ecosystems are provided in the [`examples/`](examples/) directory:
+Complete example projects are available in the [examples/](examples/) directory:
 
-- **[ESP-IDF Demo (`examples/esp_demo/`)](examples/esp_demo/)**: FreeRTOS integration demonstrating a dedicated UART RX task, hardware spinlocks (`taskENTER_CRITICAL`), non-blocking tick management, and periodic transmission via `uart_write_bytes`.
-- **[Zephyr RTOS Demo (`examples/zephyr_demo/`)](examples/zephyr_demo/)**: Native Zephyr module integration showing `uart_poll_in`/`uart_poll_out` hardware polling, `k_msleep` cooperative timing, and multi-variable packed struct synchronization.
-- **[Arduino Framework Demo (`examples/arduino_demo/`)](examples/arduino_demo/)**: Arduino sketch utilizing `HardwareSerial` (`Serial.write`), non-blocking `millis()` timing, and atomic synchronization.
+- [ESP-IDF Demo (examples/esp_demo/)](examples/esp_demo/): FreeRTOS integration demonstrating a dedicated UART RX task, hardware spinlocks (taskENTER_CRITICAL), non-blocking tick management with esp_log_timestamp(), and periodic transmission via uart_write_bytes.
+- [Zephyr RTOS Demo (examples/zephyr_demo/)](examples/zephyr_demo/): Native Zephyr module integration showing uart_poll_in / uart_poll_out hardware polling, k_uptime_get_32() timing, and multi-variable packed struct synchronization.
+- [Arduino Framework Demo (examples/arduino_demo/)](examples/arduino_demo/): Arduino sketch utilizing HardwareSerial (Serial.write), non-blocking millis() timing with bava_tick, and atomic synchronization.
 
 ---
 
@@ -157,7 +264,7 @@ idf.py add-dependency "nishanthraj707/bava"
 
 ### Zephyr RTOS
 
-Add BAVA as a Zephyr module via `west.yml` or your application `CMakeLists.txt`, then enable it in `prj.conf`:
+Add BAVA as a Zephyr module via west.yml or your application CMakeLists.txt, then enable it in prj.conf:
 
 ```properties
 CONFIG_SERIAL=y
@@ -203,20 +310,20 @@ bavaprotocol/
 
 ## Frame Structure
 
-BAVA Point-to-Point frames enforce `0x7D` byte-stuffing across the command, identifier, length, payload, and CRC bytes.
+BAVA Point-to-Point frames enforce 0x7D byte-stuffing across the command, identifier, length, payload, and CRC bytes.
 
 | Offset | Field | Size | Description |
 | :---: | :--- | :---: | :--- |
-| `0` | **SYNC1** | 1 Byte | Frame delimiter (`0xAA`) |
-| `1` | **SYNC2** | 1 Byte | Frame delimiter (`0x55`) |
-| `2` | **CMD** | 1 Byte | Command: `0x01` (READ), `0x02` (WRITE), `0x81` (READ_RESP), `0x82` (WRITE_ACK) |
-| `3` | **ID** | 1 Byte | Variable dictionary identifier (`0x00` - `0x1F`) |
-| `4` | **LEN** | 1 Byte | Payload byte count ($0 \le N \le 32$) |
-| `5 .. 5+N-1` | **PAYLOAD** | $N$ Bytes | Raw binary data payload |
-| `5+N` | **CRC_LOW** | 1 Byte | CRC-16-CCITT low byte |
-| `5+N+1` | **CRC_HIGH** | 1 Byte | CRC-16-CCITT high byte |
+| 0 | SYNC1 | 1 Byte | Frame delimiter (0xAA) |
+| 1 | SYNC2 | 1 Byte | Frame delimiter (0x55) |
+| 2 | CMD | 1 Byte | Command: 0x01 (READ), 0x02 (WRITE), 0x81 (READ_RESP), 0x82 (WRITE_ACK) |
+| 3 | ID | 1 Byte | Variable dictionary identifier (0x00 - 0x1F) |
+| 4 | LEN | 1 Byte | Payload byte count (0 <= N <= 32) |
+| 5 .. 5+N-1 | PAYLOAD | N Bytes | Raw binary data payload |
+| 5+N | CRC_LOW | 1 Byte | CRC-16-CCITT low byte |
+| 5+N+1 | CRC_HIGH | 1 Byte | CRC-16-CCITT high byte |
 
-Total unescaped frame size: $7 + N$ bytes.
+Total unescaped frame size: 7 + N bytes.
 
 ---
 
@@ -224,13 +331,13 @@ Total unescaped frame size: $7 + N$ bytes.
 
 Hardware tests were conducted over a 115,200 baud UART link between an STM32F103 (72 MHz) and an ESP32 (240 MHz) using polled I/O:
 
-| Metric | Raw ASCII UART (`sscanf`) | BAVA Protocol | Delta / Impact |
+| Metric | Raw ASCII UART (sscanf) | BAVA Protocol | Delta / Impact |
 | :--- | :--- | :--- | :--- |
-| **RX Parse Latency** | 135.5 us - 251.0 us | **73.1 us - 80.2 us** | Up to 68% latency reduction; $O(1)$ constant time |
-| **TX Framing Latency** | 33.0 us (`snprintf`, unverified) | **84.0 us (CRC-16 Framing)** | +51.0 us for byte-stuffing and CRC protection |
-| **Packet Delivery Rate** | ~50.0% (FIFO clipping dropouts) | **100.00% (0 errors)** | Preambles prevent delimiter fragmentation |
-| **Dynamic Heap Usage** | Variable | **0 Bytes** | Zero calls to dynamic allocation functions |
-| **Stack Consumption** | Variable | **96 Bytes** | Bounded local execution frame |
+| RX Parse Latency | 135.5 us - 251.0 us | 73.1 us - 80.2 us | Up to 68% latency reduction; O(1) constant time |
+| TX Framing Latency | 33.0 us (snprintf, unverified) | 84.0 us (CRC-16 Framing) | +51.0 us for byte-stuffing and CRC protection |
+| Packet Delivery Rate | ~50.0% (FIFO clipping dropouts) | 100.00% (0 errors) | Preambles prevent delimiter fragmentation |
+| Dynamic Heap Usage | Variable | 0 Bytes | Zero calls to dynamic allocation functions |
+| Stack Consumption | Variable | 96 Bytes | Bounded local execution frame |
 
 See [performance.md](performance.md) for full testbed data, and [report.md](report.md) for architectural analysis.
 
@@ -239,20 +346,21 @@ See [performance.md](performance.md) for full testbed data, and [report.md](repo
 ## Frequently Asked Questions (FAQ)
 
 ### Why does ASCII UART communication exhibit data loss on embedded systems?
-Microcontroller UART hardware FIFOs transfer data in blocks (e.g., 8 to 64 bytes). When text protocols use a single delimiter like `\n`, an interrupt or polling read that catches an incomplete FIFO block passes truncated tokens to `sscanf()` or `strtod()`. These functions fail to parse the partial line and return zero values. BAVA uses a sequential state machine with sync preambles (`0xAA 0x55`) and explicit payload length fields, reconstructing frames across fragmented FIFO boundaries without loss.
+Microcontroller UART hardware FIFOs transfer data in blocks (e.g., 8 to 64 bytes). When text protocols use a single delimiter like \n, an interrupt or polling read that catches an incomplete FIFO block passes truncated tokens to sscanf() or strtod(). These functions fail to parse the partial line and return zero values. BAVA uses a sequential state machine with sync preambles (0xAA 0x55) and explicit payload length fields, reconstructing frames across fragmented FIFO boundaries without loss.
 
 ### How are concurrent ISR reads and application writes prevented from corrupting data?
-During dictionary updates, `bava_internal_update()` locks memory using platform-specific primitives:
-- **ESP-IDF:** `portENTER_CRITICAL_ISR()` / `portEXIT_CRITICAL_ISR()` with spinlocks.
-- **Zephyr RTOS:** `irq_lock()` / `irq_unlock()`.
-- **STM32 CMSIS:** `taskENTER_CRITICAL_FROM_ISR()` / `__disable_irq()`.
-- **Arduino:** `noInterrupts()` / `interrupts()`.
-- **Bare-metal:** Atomic flags with user-configurable critical section callbacks.
+During dictionary updates, bava_internal_update() locks memory using platform-specific primitives:
+- ESP-IDF: portENTER_CRITICAL_ISR() / portEXIT_CRITICAL_ISR() with spinlocks.
+- Zephyr RTOS: irq_lock() / irq_unlock().
+- STM32 CMSIS: taskENTER_CRITICAL_FROM_ISR() / __disable_irq().
+- Arduino: noInterrupts() / interrupts().
+- Bare-metal: Atomic flags with user-configurable critical section callbacks.
 
 ---
 
 ## Roadmap
 
-- **Consistent Overhead Byte Stuffing (COBS):** Replace `0x7D` byte-stuffing with COBS to bound worst-case framing overhead to $\lceil N/254 \rceil + 1$ bytes.
-- **Multi-Drop Bus Topology:** Add node addressing and collision-free broadcast primitives for RS-485 networks.
-- **Hardware CRC Accelerators:** Provide build-time configuration to offload CRC-16 computation to on-chip CRC peripherals on STM32 and ESP32 hardware.
+- Consistent Overhead Byte Stuffing (COBS): Replace 0x7D byte-stuffing with COBS to bound worst-case framing overhead to ceil(N/254) + 1 bytes.
+- Multi-Drop Bus Topology: Add node addressing and collision-free broadcast primitives for RS-485 networks.
+- Hardware CRC Accelerators: Provide build-time configuration to offload CRC-16 computation to on-chip CRC peripherals on STM32 and ESP32 hardware.
+

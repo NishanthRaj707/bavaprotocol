@@ -36,16 +36,6 @@ void esp32_uart_tx_cb(const uint8_t *data, uint16_t size) {
     uart_write_bytes(UART_PORT_NUM, (const char *)data, size);
 }
 
-// 2. Hardware Critical Section Callbacks for ISR Safety
-static portMUX_TYPE bava_spinlock = portMUX_INITIALIZER_UNLOCKED;
-
-void esp32_enter_critical(void) {
-    taskENTER_CRITICAL(&bava_spinlock);
-}
-
-void esp32_exit_critical(void) {
-    taskEXIT_CRITICAL(&bava_spinlock);
-}
 
 // 3. Error Callback for dropped packets / timeout events (Optional)
 void bava_error_handler(uint8_t id, uint8_t error_code) {
@@ -80,8 +70,6 @@ void app_main(void) {
 
     // Initialize BAVA instance
     bava_init(&bava, esp32_uart_tx_cb);
-    bava.enter_critical = esp32_enter_critical;
-    bava.exit_critical  = esp32_exit_critical;
     bava.error_callback = bava_error_handler;
 
     // Advance BAVA non-blocking timer using ESP-IDF system timestamp API
