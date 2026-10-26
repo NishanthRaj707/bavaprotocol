@@ -115,7 +115,7 @@ typedef struct
     uint8_t pending_ack_cmd;     
     volatile bool is_waiting_ack; // Blocks new TX until true or timeout
 
-    uint8_t tx_buffer[((BAVA_MAX_PAYLOAD + 5) * 2) + 2];
+    uint8_t tx_buffer[BAVA_MAX_PAYLOAD+ 2];
 
     // Timeout Tracking
     uint32_t current_time_ms;  // Continuously updated by the user or millis()
@@ -126,6 +126,11 @@ typedef struct
     bava_error_cb_t error_callback;
     volatile bool is_escaping;
     uint16_t incoming_crc;
+
+    //COBS variables
+    uint8_t cobs_distance;
+    uint8_t cobs_buffer[BAVA_MAX_PAYLOAD+2];
+    
 
 #ifdef ESP_PLATFORM
     SemaphoreHandle_t tx_mutex; // For bava_send_write
