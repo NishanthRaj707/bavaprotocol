@@ -10,50 +10,39 @@ extern void bava_bus_cmd_read_request(bava_handle_t* bava_handle, uint8_t id, ui
 void bava_process_byte(bava_handle_t* bava_handle, uint8_t byte)
 {
     // Timeout logic to evaluate elapsed delta time correctly
-    if (bava_handle->rx_state != BAVA_STATE_WAIT_SYNC1 && 
+    if (bava_handle->rx_state != BAVA_STATE_WAIT_ZERO && 
        (bava_handle->current_time_ms - bava_handle->start_time) > BAVA_RX_TIMEOUT)
     {
-        bava_handle->rx_state = BAVA_STATE_WAIT_SYNC1;
+        bava_handle->rx_state = BAVA_STATE_WAIT_ZERO;
         if (bava_handle->error_callback != NULL)
         {
             bava_handle->error_callback(0, BAVA_ERR_TIMEOUT);
         }
         return;
     }
-    
-    if (byte == BAVA_SYNC_BYTE1)
+
+    if(byte == BAVA_STATE_WAIT_ZERO)
     {
-        bava_handle->rx_state = BAVA_STATE_WAIT_SYNC2;
-        bava_handle->is_escaping = false;
-        bava_handle->start_time = bava_handle->current_time_ms; // Reset the timeout timer start time
-        return;
+        bava_handle->rx_state = BAVA_STATE_WAIT_OVERHEAD;
     }
 
-    if (byte == BAVA_ESCAPE_BYTE)
+    if(bava_handle->rx_state = BAVA_STATE_WAIT_OVERHEAD)
     {
-        bava_handle->is_escaping = true;
-        return;
+        bava_handle->cobs_distance = byte;
+        bava_handle->rx_state = BAVA_STATE_READ_CMD;
     }
 
-    if (bava_handle->is_escaping)
+    bava_handle->cobs_distance--;
+    uint8_t pure_byte = rx_byte;
+
+    if(bava_handle->cobs_distance == 0)
     {
-        byte ^= BAVA_ESCAPE_MASK;
-        bava_handle->is_escaping = false;
+        pure_byte = 0x00;
+        bava_handle->cobs_distance = rx_byte;
     }
 
     switch (bava_handle->rx_state)
     {
-        case BAVA_STATE_WAIT_SYNC1:
-             break;
-
-        case BAVA_STATE_WAIT_SYNC2:
-             if (byte == BAVA_SYNC_BYTE2) {
-                bava_handle->rx_state = BAVA_STATE_READ_CMD;
-             } else {
-                bava_handle->rx_state = BAVA_STATE_WAIT_SYNC1;
-             }
-             break;
-
         case BAVA_STATE_READ_CMD:
              bava_handle->rx_cmd = byte;
              if (bava_handle->is_bava_bus) {

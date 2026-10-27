@@ -80,8 +80,8 @@ typedef struct
 // BAVA MESSAGE STRUCTURE
 typedef enum
 {
-    BAVA_STATE_WAIT_SYNC1,
-    BAVA_STATE_WAIT_SYNC2,
+    BAVA_STATE_WAIT_ZERO,
+    BAVA_STATE_WATI_OVERHEAD,
     BAVA_STATE_READ_CMD,
     BAVA_STATE_READ_NODE_ID,
     BAVA_STATE_READ_SENDER_ID,
@@ -109,6 +109,7 @@ typedef struct
     uint8_t rx_id;
     uint8_t rx_len;
     uint8_t rx_idx;                 // Tracks bytes read into the payload buffer
+    uint8_t cobs_distance;
     uint8_t rx_payload[BAVA_MAX_PAYLOAD];
 
     uint8_t pending_ack_id;      // The ID we just sent

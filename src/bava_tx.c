@@ -179,17 +179,16 @@ static void bava_internal_send_packet(bava_handle_t *bava_handle, uint8_t cmd, u
         (bava_handle->tx_buffer, &tx_idx, crc_high);
     }
     //Pass to the COBS function
-
-
+    size_t cobs_len=tx_cobs_enocode(bava_handle,tx_idx+1);
 
     // Hardware Transmission Callback execution while safely locked
     if (bava_handle->tx_callback != NULL)
     {
-        bava_handle->tx_callback(bava_handle->tx_buffer, tx_idx);
+        bava_handle->tx_callback(bava_handle->cobs_buffer, cobs_len);
     }
     else if (bava_handle->bava_bus_tx_callback != NULL)
     {
-        bava_handle->bava_bus_tx_callback(bava_handle->tx_buffer, tx_idx);
+        bava_handle->bava_bus_tx_callback(bava_handle->cobs_buffer, cobs_len);
     }
     
     if (cmd == BAVA_WRITE || cmd == BAVA_READ || cmd == BAVA_BUS_WRITE || cmd == BAVA_BUS_READ) {
