@@ -8,7 +8,7 @@ void bava_init(bava_handle_t* bava_handle, bava_tx_cb_t bava_tx_callback)
     bava_handle->tx_callback = bava_tx_callback;
     bava_handle->bava_bus_tx_callback = NULL;
     bava_handle->is_bava_bus = false;
-    bava_handle->rx_state = BAVA_STATE_WAIT_SYNC1;
+    bava_handle->rx_state = BAVA_STATE_WAIT_OVERHEAD;
 
 #ifdef ESP_PLATFORM
     bava_handle->tx_mutex = xSemaphoreCreateMutex();

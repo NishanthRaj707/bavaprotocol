@@ -21,7 +21,7 @@ void bava_process_byte(bava_handle_t* bava_handle, uint8_t byte)
         return;
     }
 
-    if(byte == BAVA_STATE_WAIT_ZERO)
+    if(byte == 0X00)
     {
         bava_handle->rx_state = BAVA_STATE_WAIT_OVERHEAD;
     }
@@ -40,7 +40,7 @@ void bava_process_byte(bava_handle_t* bava_handle, uint8_t byte)
         pure_byte = 0x00;
         bava_handle->cobs_distance = rx_byte;
     }
-
+    
     switch (bava_handle->rx_state)
     {
         case BAVA_STATE_READ_CMD:
@@ -157,8 +157,6 @@ void bava_process_byte(bava_handle_t* bava_handle, uint8_t byte)
                     }
                 }
              }
-             // Reset for the next packet
-             bava_handle->rx_state = BAVA_STATE_WAIT_SYNC1;
              break;
         }
     }
