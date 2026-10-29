@@ -33,7 +33,7 @@ void bava_init(bava_handle_t* bava_handle, bava_tx_cb_t bava_tx_callback)
 
 void bava_bus_init(bava_handle_t* bava_handle, bava_bus_tx_cb_t bava_bus_tx_callback, uint8_t node_id)
 {
-    bava_init(bava_handle, (bava_tx_cb_t)bava_bus_tx_callback);
+    bava_init(bava_handle, NULL);
     bava_handle->bava_bus_tx_callback = bava_bus_tx_callback;
     bava_handle->node_id = node_id;
     bava_handle->is_bava_bus = true;
