@@ -1,5 +1,5 @@
-version: "1.0.4"
-description: "BAVA - Bidirectional Asynchronous Versatile Architecture Protocol. Universal transport-agnostic O(1) zero-allocation framing protocol for UART, SPI, Wi-Fi, BLE, and embedded buses."
+version: "1.0.5"
+description: "BAVA Protocol. Universal transport-agnostic zero-allocation framing protocol for UART, SPI, Wi-Fi, BLE."
 url: "https://github.com/NishanthRaj707/bavaprotocol"
 maintainers:
   - "Nishanth Raj <https://github.com/NishanthRaj707>"

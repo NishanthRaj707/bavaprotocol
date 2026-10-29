@@ -3,15 +3,12 @@
 // The standard CRC-16-CCITT polynomial: x^16 + x^12 + x^5 + 1
 #define BAVA_CRC16_POLY 0x1021
 
-/* ========================================================================= *
- *                           INTERNAL FUNCTIONS                              *
- * ========================================================================= */
-
-/**
- * @brief Updates the running CRC value with a single new byte.
+/*
+ * Updates the running CRC value with a single new byte.
  * Uses the bitwise (zero-RAM) calculation method.
  */
-static uint16_t bava_crc_update(uint16_t crc, uint8_t data) {
+ 
+uint16_t bava_crc_update(uint16_t crc, uint8_t data) {
     // XOR the byte into the most significant byte of the CRC
     crc ^= ((uint16_t)data << 8);
     
@@ -30,66 +27,28 @@ static uint16_t bava_crc_update(uint16_t crc, uint8_t data) {
     return crc;
 }
 
-/* ========================================================================= *
- *                              PUBLIC API                                   *
- * ========================================================================= */
-
-/**
- * @brief Calculates the full 16-bit CRC for a BAVA packet.
- * 
- * @param cmd The command byte (e.g., WRITE, READ_REQ)
- * @param id The variable dictionary ID
- * @param len The length of the payload
- * @param payload Pointer to the raw data array
- * @return uint16_t The calculated checksum
- */
-uint16_t bava_calculate_crc(uint8_t cmd, uint8_t id, uint8_t len,const uint8_t *payload) {
-    
-    // Standard initialization value for CCITT
+uint16_t bava_calculate_crc(uint8_t cmd, uint8_t id, uint8_t len, const uint8_t *payload) {
     uint16_t crc = 0xFFFF;
-    
-    // 1. Process the packet headers
     crc = bava_crc_update(crc, cmd);
     crc = bava_crc_update(crc, id);
     crc = bava_crc_update(crc, len);
-    
-    // 2. Process the payload (if any)
-    if (len > 0 && payload != NULL) {
-        for (uint8_t i = 0; i < len; i++) {
-            crc = bava_crc_update(crc, payload[i]);
-        }
+    for (uint8_t i = 0; i < len; i++) {
+        crc = bava_crc_update(crc, payload[i]);
     }
-    
     return crc;
 }
 
-/**
- * @brief Calculates the full 16-bit CRC for a BAVA bus packet (including node addressing).
- * 
- * @param cmd The command byte (e.g., BUS_WRITE, BUS_READ)
- * @param target_id The target destination node ID
- * @param sender_id The transmitting sender node ID
- * @param id The variable dictionary ID
- * @param len The length of the payload
- * @param payload Pointer to the raw data array
- * @return uint16_t The calculated checksum
- */
 uint16_t bava_calculate_bus_crc(uint8_t cmd, uint8_t target_id, uint8_t sender_id, uint8_t id, uint8_t len, const uint8_t *payload) {
     uint16_t crc = 0xFFFF;
-    
-    // 1. Process the bus packet headers including node IDs
     crc = bava_crc_update(crc, cmd);
     crc = bava_crc_update(crc, target_id);
     crc = bava_crc_update(crc, sender_id);
     crc = bava_crc_update(crc, id);
     crc = bava_crc_update(crc, len);
-    
-    // 2. Process the payload (if any)
-    if (len > 0 && payload != NULL) {
-        for (uint8_t i = 0; i < len; i++) {
-            crc = bava_crc_update(crc, payload[i]);
-        }
+    for (uint8_t i = 0; i < len; i++) {
+        crc = bava_crc_update(crc, payload[i]);
     }
-    
     return crc;
 }
+
+

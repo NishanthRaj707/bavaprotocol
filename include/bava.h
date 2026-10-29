@@ -78,10 +78,13 @@ typedef struct
 } bava_var_t;
 
 // BAVA MESSAGE STRUCTURE
+#define BAVA_RAW_FRAME_MAX_SIZE   (BAVA_MAX_PAYLOAD + 7U)
+#define BAVA_COBS_FRAME_MAX_SIZE  (BAVA_RAW_FRAME_MAX_SIZE + 2U)
+
 typedef enum
 {
-    BAVA_STATE_WAIT_SYNC1,
-    BAVA_STATE_WAIT_SYNC2,
+    BAVA_STATE_WAIT_ZERO = 0,
+    BAVA_STATE_WAIT_OVERHEAD,
     BAVA_STATE_READ_CMD,
     BAVA_STATE_READ_NODE_ID,
     BAVA_STATE_READ_SENDER_ID,
@@ -89,7 +92,8 @@ typedef enum
     BAVA_STATE_READ_LEN,
     BAVA_STATE_READ_PAYLOAD,
     BAVA_STATE_READ_CRC1,
-    BAVA_STATE_READ_CRC2
+    BAVA_STATE_READ_CRC2,
+    BAVA_STATE_VERIFY_DELIMITER
 } bava_rx_state_t;
 
 // BAVA Handle structure
@@ -109,13 +113,15 @@ typedef struct
     uint8_t rx_id;
     uint8_t rx_len;
     uint8_t rx_idx;                 // Tracks bytes read into the payload buffer
+    uint8_t cobs_distance;
     uint8_t rx_payload[BAVA_MAX_PAYLOAD];
 
     uint8_t pending_ack_id;      // The ID we just sent
     uint8_t pending_ack_cmd;     
     volatile bool is_waiting_ack; // Blocks new TX until true or timeout
 
-    uint8_t tx_buffer[((BAVA_MAX_PAYLOAD + 5) * 2) + 2];
+    uint8_t tx_buffer[BAVA_RAW_FRAME_MAX_SIZE];
+    uint8_t cobs_buffer[BAVA_COBS_FRAME_MAX_SIZE];
 
     // Timeout Tracking
     uint32_t current_time_ms;  // Continuously updated by the user or millis()
@@ -124,8 +130,9 @@ typedef struct
 
     // Error Handling
     bava_error_cb_t error_callback;
-    volatile bool is_escaping;
     uint16_t incoming_crc;
+    uint16_t current_crc;
+    
 
 #ifdef ESP_PLATFORM
     SemaphoreHandle_t tx_mutex; // For bava_send_write
@@ -184,6 +191,7 @@ void bava_bus_broadcast_write(bava_handle_t* bava_handle, uint8_t id);
 void bava_bus_broadcast_raw_write(bava_handle_t* bava_handle, uint8_t id, const uint8_t* pointer, uint8_t len);
 
 // Checksum functions
+uint16_t bava_crc_update(uint16_t crc, uint8_t data);
 uint16_t bava_calculate_crc(uint8_t cmd, uint8_t id, uint8_t len, const uint8_t *payload);
 uint16_t bava_calculate_bus_crc(uint8_t cmd, uint8_t target_id, uint8_t sender_id, uint8_t id, uint8_t len, const uint8_t *payload);
 

@@ -54,18 +54,43 @@ static inline void bava_tx_unlock(bava_handle_t *bava_handle)
 /* ========================================================================== */
 /*                       INTERNAL TRANSMISSION ENGINE                         */
 /* ========================================================================== */
-
-static void bava_add_escape_byte(uint8_t* buffer, uint16_t* idx, uint8_t byte)
+//COBS encoding function
+static size_t tx_cobs_encode(bava_handle_t* bava_handle, size_t raw_length)
 {
-    if (byte == BAVA_SYNC_BYTE1 || byte == BAVA_ESCAPE_BYTE)
+    uint8_t* src = bava_handle->tx_buffer;
+    uint8_t* dest = bava_handle->cobs_buffer;
+
+    size_t read_idx = 0;
+    size_t write_idx = 1;
+    size_t code = 1;
+    size_t code_idx = 0;
+
+    while(read_idx < raw_length)
     {
-        buffer[(*idx)++] = BAVA_ESCAPE_BYTE;
-        buffer[(*idx)++] = byte ^ BAVA_ESCAPE_MASK;
+        if(src[read_idx] == 0x00)
+        {
+             dest[code_idx] = code;
+             code = 1;
+             code_idx = write_idx++;
+        }
+        else{
+            dest[write_idx++] = src[read_idx];
+            code++;
+            
+            if(code == 0xFF)
+            {
+                dest[code_idx] = code;
+                code = 1;
+                code_idx = write_idx++;
+            }
+        }
+
+        read_idx++;
     }
-    else
-    {
-        buffer[(*idx)++] = byte;
-    }
+    dest[code_idx] = code;
+    dest[write_idx++] = 0x00;
+
+    return write_idx;
 }
 
 static void bava_internal_send_packet(bava_handle_t *bava_handle, uint8_t cmd, uint8_t target_node_id, uint8_t id, const uint8_t *payload, uint8_t len)
@@ -83,23 +108,21 @@ static void bava_internal_send_packet(bava_handle_t *bava_handle, uint8_t cmd, u
 
     uint16_t tx_idx = 0;
 
-    bava_handle->tx_buffer[tx_idx++] = BAVA_SYNC_BYTE1;
-    bava_handle->tx_buffer[tx_idx++] = BAVA_SYNC_BYTE2;
-
-    bava_add_escape_byte(bava_handle->tx_buffer, &tx_idx, cmd);
+    bava_handle->tx_buffer[tx_idx++] = cmd;
     
     if (is_bus_cmd) {
-        bava_add_escape_byte(bava_handle->tx_buffer, &tx_idx, target_node_id);
-        bava_add_escape_byte(bava_handle->tx_buffer, &tx_idx, bava_handle->node_id);
+        bava_handle->tx_buffer[tx_idx++] = target_node_id;
+        bava_handle->tx_buffer[tx_idx++] = bava_handle->node_id;
     }
-    bava_add_escape_byte(bava_handle->tx_buffer, &tx_idx, id);
-    bava_add_escape_byte(bava_handle->tx_buffer, &tx_idx, len);
+    bava_handle->tx_buffer[tx_idx++] = id;
 
-    // Endianness handling and payload escaping safely inside locked region
-    if (len > 0 && payload != NULL)
+    uint8_t payload_size = (len > BAVA_MAX_PAYLOAD) ? BAVA_MAX_PAYLOAD : len;
+    bava_handle->tx_buffer[tx_idx++] = payload_size;
+
+    // Endianness handling and payload formatting safely inside locked region
+    if (payload_size > 0 && payload != NULL)
     {
         uint8_t formatted_payload[BAVA_MAX_PAYLOAD];
-        uint8_t payload_size = (len > BAVA_MAX_PAYLOAD) ? BAVA_MAX_PAYLOAD : len;
 
         // Automatically convert 16-bit and 32-bit integer/float values to network byte order
         if (payload_size == 2)
@@ -123,7 +146,7 @@ static void bava_internal_send_packet(bava_handle_t *bava_handle, uint8_t cmd, u
 
         for (uint8_t i = 0; i < payload_size; i++)
         {
-            bava_add_escape_byte(bava_handle->tx_buffer, &tx_idx, formatted_payload[i]);
+            bava_handle->tx_buffer[tx_idx++] = formatted_payload[i];
         }
         
         uint16_t crc;
@@ -136,8 +159,8 @@ static void bava_internal_send_packet(bava_handle_t *bava_handle, uint8_t cmd, u
         uint8_t crc_low = (uint8_t)(crc & 0xFF);
         uint8_t crc_high = (uint8_t)((crc >> 8) & 0xFF);
 
-        bava_add_escape_byte(bava_handle->tx_buffer, &tx_idx, crc_low);
-        bava_add_escape_byte(bava_handle->tx_buffer, &tx_idx, crc_high);
+        bava_handle->tx_buffer[tx_idx++] = crc_low;
+        bava_handle->tx_buffer[tx_idx++] = crc_high;
     }
     else
     {
@@ -151,18 +174,20 @@ static void bava_internal_send_packet(bava_handle_t *bava_handle, uint8_t cmd, u
         uint8_t crc_low = (uint8_t)(crc & 0xFF);
         uint8_t crc_high = (uint8_t)((crc >> 8) & 0xFF);
 
-        bava_add_escape_byte(bava_handle->tx_buffer, &tx_idx, crc_low);
-        bava_add_escape_byte(bava_handle->tx_buffer, &tx_idx, crc_high);
+        bava_handle->tx_buffer[tx_idx++] = crc_low;
+        bava_handle->tx_buffer[tx_idx++] = crc_high;
     }
+    // Pass to the COBS function
+    size_t cobs_len = tx_cobs_encode(bava_handle, tx_idx);
 
     // Hardware Transmission Callback execution while safely locked
     if (bava_handle->tx_callback != NULL)
     {
-        bava_handle->tx_callback(bava_handle->tx_buffer, tx_idx);
+        bava_handle->tx_callback(bava_handle->cobs_buffer, cobs_len);
     }
     else if (bava_handle->bava_bus_tx_callback != NULL)
     {
-        bava_handle->bava_bus_tx_callback(bava_handle->tx_buffer, tx_idx);
+        bava_handle->bava_bus_tx_callback(bava_handle->cobs_buffer, cobs_len);
     }
     
     if (cmd == BAVA_WRITE || cmd == BAVA_READ || cmd == BAVA_BUS_WRITE || cmd == BAVA_BUS_READ) {
