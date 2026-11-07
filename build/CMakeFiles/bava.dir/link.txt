@@ -1,2 +1,0 @@
-/usr/bin/ar qc libbava.a CMakeFiles/bava.dir/src/bava_crc.c.o CMakeFiles/bava.dir/src/bava_dict.c.o CMakeFiles/bava.dir/src/bava_state.c.o CMakeFiles/bava.dir/src/bava_tx.c.o
-/usr/bin/ranlib libbava.a
