@@ -1,6 +1,10 @@
 #include "bava.h"
 #include <string.h>
 
+#if defined(__ZEPHYR__)
+unsigned int bava_zephyr_irq_key = 0;
+#endif
+
 // Initialization function
 void bava_init(bava_handle_t* bava_handle, bava_tx_cb_t bava_tx_callback)
 {
@@ -82,6 +86,34 @@ void bava_var_clear_update_status(bava_handle_t* bava_handle, uint8_t id)
             return;
         }
     }
+}
+
+// Thread-safe / ISR-safe read of dictionary variable to prevent data tearing
+bool bava_read_var(bava_handle_t *bava, uint8_t id, void *dest_buf, uint8_t size)
+{
+    if (bava == NULL || dest_buf == NULL || size == 0U)
+    {
+        return false;
+    }
+
+    for (uint8_t i = 0; i < bava->var_count; i++)
+    {
+        if (bava->variables[i].id == id)
+        {
+            if (bava->variables[i].size != size || bava->variables[i].var_ptr == NULL)
+            {
+                return false;
+            }
+
+            BAVA_DISABLE_IRQ();
+            memcpy(dest_buf, bava->variables[i].var_ptr, (size_t)size);
+            BAVA_ENABLE_IRQ();
+
+            return true;
+        }
+    }
+
+    return false;
 }
 
 // Internal update function

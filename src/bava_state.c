@@ -18,7 +18,8 @@ void bava_process_byte(bava_handle_t* bava_handle, uint8_t rx_byte)
                 if (bava_handle->rx_cmd == BAVA_WRITE)
                 {
                     bava_internal_update(bava_handle, bava_handle->rx_id, bava_handle->rx_payload, bava_handle->rx_len);
-                    bava_cmd_write_ack(bava_handle, bava_handle->rx_id);
+                    bava_handle->pending_ack_id = bava_handle->rx_id;
+                    bava_handle->pending_ack_tx = true;
                 }
                 else if (bava_handle->rx_cmd == BAVA_BUS_WRITE)
                 {
@@ -26,25 +27,28 @@ void bava_process_byte(bava_handle_t* bava_handle, uint8_t rx_byte)
                     // Prevent bus contention: only ACK unicast writes, never broadcast destination or broadcast sender
                     if (bava_handle->rx_node_id != BAVA_BROADCAST_NODE_ID && bava_handle->rx_sender_id != BAVA_BROADCAST_NODE_ID)
                     {
-                        bava_bus_cmd_write_ack(bava_handle, bava_handle->rx_id, bava_handle->rx_sender_id);
+                        bava_handle->pending_ack_id = bava_handle->rx_id;
+                        bava_handle->pending_ack_tx = true;
                     }
                 }
                 else if (bava_handle->rx_cmd == BAVA_READ)
                 {
-                    bava_cmd_read_request(bava_handle, bava_handle->rx_id);
+                    bava_handle->pending_read_resp_id = bava_handle->rx_id;
+                    bava_handle->pending_read_resp_tx = true;
                 }
                 else if (bava_handle->rx_cmd == BAVA_BUS_READ)
                 {
                     // Only reply if sender is not broadcast to avoid bus contention
                     if (bava_handle->rx_sender_id != BAVA_BROADCAST_NODE_ID)
                     {
-                        bava_bus_cmd_read_request(bava_handle, bava_handle->rx_id, bava_handle->rx_sender_id);
+                        bava_handle->pending_read_resp_id = bava_handle->rx_id;
+                        bava_handle->pending_read_resp_tx = true;
                     }
                 }
                 else if (bava_handle->rx_cmd == BAVA_WRITE_ACK || bava_handle->rx_cmd == BAVA_READ_RESP ||
                          bava_handle->rx_cmd == BAVA_BUS_WRITE_ACK || bava_handle->rx_cmd == BAVA_BUS_READ_RESP)
                 {
-                    if (bava_handle->is_waiting_ack && bava_handle->pending_ack_id == bava_handle->rx_id)
+                    if (bava_handle->is_waiting_ack && bava_handle->waiting_ack_id == bava_handle->rx_id)
                     {
                         bava_handle->is_waiting_ack = false;
                     }

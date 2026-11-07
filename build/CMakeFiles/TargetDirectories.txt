@@ -1,0 +1,3 @@
+/home/bava/Desktop/bavaprotocol/build/CMakeFiles/bava.dir
+/home/bava/Desktop/bavaprotocol/build/CMakeFiles/edit_cache.dir
+/home/bava/Desktop/bavaprotocol/build/CMakeFiles/rebuild_cache.dir

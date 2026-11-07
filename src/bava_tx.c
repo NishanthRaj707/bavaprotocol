@@ -7,32 +7,37 @@ extern uint16_t bava_calculate_crc(uint8_t cmd, uint8_t id, uint8_t len, const u
 /*                       CENTRALIZED MUTEX / LOCK HELPERS                     */
 /* ========================================================================== */
 
-static inline void bava_tx_lock(bava_handle_t *bava_handle)
+static inline bool bava_tx_lock(bava_handle_t *bava_handle)
 {
 #ifdef ESP_PLATFORM
-    xSemaphoreTake(bava_handle->tx_mutex, portMAX_DELAY);
+    BaseType_t ret = xSemaphoreTake(bava_handle->tx_mutex, portMAX_DELAY);
+    return (ret == pdTRUE);
 #elif defined(USE_HAL_DRIVER) && defined(osCMSIS)
-    osMutexAcquire(bava_handle->tx_mutex, osWaitForever);
+    osStatus_t status = osMutexAcquire(bava_handle->tx_mutex, osWaitForever);
+    return (status == osOK);
 #elif defined(__ZEPHYR__)
-    k_mutex_lock(&bava_handle->tx_mutex, K_FOREVER);
+    int ret = k_mutex_lock(&bava_handle->tx_mutex, K_FOREVER);
+    return (ret == 0);
 #elif defined(ARDUINO)
-    uint32_t spin_count = 0;
+    uint32_t spin_count = 0U;
     while (atomic_flag_test_and_set(&bava_handle->tx_lock)) {
         yield();
         if (++spin_count > 1000000UL) {
-            break;
+            return false;
         }
     }
+    return true;
 #else
-    uint32_t spin_count = 0;
+    uint32_t spin_count = 0U;
     while (atomic_flag_test_and_set(&bava_handle->tx_lock)) {
         if (bava_handle->yield_callback != NULL) {
             bava_handle->yield_callback();
         }
         if (++spin_count > 1000000UL) { // Prevent WDT starvation
-            break;
+            return false;
         }
     }
+    return true;
 #endif
 }
 
@@ -104,7 +109,10 @@ static void bava_internal_send_packet(bava_handle_t *bava_handle, uint8_t cmd, u
     }
 
     // 1. Acquire Centralized Hardware TX Lock BEFORE touching shared tx_buffer
-    bava_tx_lock(bava_handle);
+    if (!bava_tx_lock(bava_handle))
+    {
+        return;
+    }
 
     uint16_t tx_idx = 0;
 
@@ -192,8 +200,8 @@ static void bava_internal_send_packet(bava_handle_t *bava_handle, uint8_t cmd, u
     
     if (cmd == BAVA_WRITE || cmd == BAVA_READ || cmd == BAVA_BUS_WRITE || cmd == BAVA_BUS_READ) {
         bava_handle->is_waiting_ack = true;
-        bava_handle->pending_ack_id = id;
-        bava_handle->pending_ack_cmd = cmd;
+        bava_handle->waiting_ack_id = id;
+        bava_handle->waiting_ack_cmd = cmd;
         bava_handle->tx_timestamp = bava_handle->current_time_ms; // Lock in start time
     }
 
@@ -205,6 +213,28 @@ static void bava_internal_send_packet(bava_handle_t *bava_handle, uint8_t cmd, u
 /*                             PUBLIC API PIPELINE                            */
 /* ========================================================================== */
 
+void bava_poll(bava_handle_t* bava_handle)
+{
+    if (bava_handle == NULL)
+    {
+        return;
+    }
+
+    if (bava_handle->pending_ack_tx)
+    {
+        uint8_t ack_id = bava_handle->pending_ack_id;
+        bava_handle->pending_ack_tx = false;
+        bava_cmd_write_ack(bava_handle, ack_id);
+    }
+
+    if (bava_handle->pending_read_resp_tx)
+    {
+        uint8_t read_id = bava_handle->pending_read_resp_id;
+        bava_handle->pending_read_resp_tx = false;
+        bava_cmd_read_request(bava_handle, read_id);
+    }
+}
+
 void bava_tick(bava_handle_t* bava_handle, uint32_t system_tick_ms)
 {
     bava_handle->current_time_ms = system_tick_ms;
@@ -214,7 +244,7 @@ void bava_tick(bava_handle_t* bava_handle, uint32_t system_tick_ms)
         bava_handle->is_waiting_ack = false;
 
         if (bava_handle->error_callback != NULL) {
-            bava_handle->error_callback(bava_handle->pending_ack_id, BAVA_ERR_TIMEOUT);
+            bava_handle->error_callback(bava_handle->waiting_ack_id, BAVA_ERR_TIMEOUT);
         }
     }
 }

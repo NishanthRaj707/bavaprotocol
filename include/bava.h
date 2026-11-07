@@ -21,6 +21,34 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+// CROSS-PLATFORM INTERRUPT CONTROL MACROS
+#if defined(ESP_PLATFORM)
+    #define BAVA_DISABLE_IRQ() portENTER_CRITICAL()
+    #define BAVA_ENABLE_IRQ()  portEXIT_CRITICAL()
+#elif defined(__ZEPHYR__)
+    extern unsigned int bava_zephyr_irq_key;
+    #define BAVA_DISABLE_IRQ() do { bava_zephyr_irq_key = irq_lock(); } while(0)
+    #define BAVA_ENABLE_IRQ()  do { irq_unlock(bava_zephyr_irq_key); } while(0)
+#elif defined(ARDUINO)
+    #if defined(__AVR__)
+        #define BAVA_DISABLE_IRQ() cli()
+        #define BAVA_ENABLE_IRQ()  sei()
+    #else
+        #define BAVA_DISABLE_IRQ() noInterrupts()
+        #define BAVA_ENABLE_IRQ()  interrupts()
+    #endif
+#elif defined(__AVR__)
+    #include <avr/interrupt.h>
+    #define BAVA_DISABLE_IRQ() cli()
+    #define BAVA_ENABLE_IRQ()  sei()
+#elif defined(USE_HAL_DRIVER) || defined(__ARM_ARCH) || defined(__arm__) || defined(osCMSIS)
+    #define BAVA_DISABLE_IRQ() __disable_irq()
+    #define BAVA_ENABLE_IRQ()  __enable_irq()
+#else
+    #define BAVA_DISABLE_IRQ() do { } while(0)
+    #define BAVA_ENABLE_IRQ()  do { } while(0)
+#endif
+
 // BAVA FRAME CONSTANTS
 #define BAVA_SYNC_BYTE1     0xAA
 #define BAVA_SYNC_BYTE2     0x55
@@ -116,9 +144,15 @@ typedef struct
     uint8_t cobs_distance;
     uint8_t rx_payload[BAVA_MAX_PAYLOAD];
 
-    uint8_t pending_ack_id;      // The ID we just sent
-    uint8_t pending_ack_cmd;     
+    uint8_t waiting_ack_id;       // The outbound request ID waiting for an ACK
+    uint8_t waiting_ack_cmd;     
     volatile bool is_waiting_ack; // Blocks new TX until true or timeout
+
+    // Asynchronous Polling Dispatch (fixes ISR deadlock)
+    volatile bool pending_ack_tx;
+    volatile uint8_t pending_ack_id;
+    volatile bool pending_read_resp_tx;
+    volatile uint8_t pending_read_resp_id;
 
     uint8_t tx_buffer[BAVA_RAW_FRAME_MAX_SIZE];
     uint8_t cobs_buffer[BAVA_COBS_FRAME_MAX_SIZE];
@@ -176,6 +210,8 @@ int8_t bava_register_var(bava_handle_t* bava_handle, uint8_t id, void* variable_
 
 // Non-blocking stream byte parser: feed incoming bytes from any transport (UART, SPI, Wi-Fi, BLE, etc.)
 void bava_process_byte(bava_handle_t *bava_handle, uint8_t byte);
+void bava_poll(bava_handle_t* bava_handle);
+bool bava_read_var(bava_handle_t* bava_handle, uint8_t id, void* dest_buf, uint8_t size);
 void bava_send_write(bava_handle_t* bava_handle, uint8_t id);
 void bava_send_raw_write(bava_handle_t* bava_handle, uint8_t id, const uint8_t* pointer, uint8_t len);
 void bava_send_read(bava_handle_t* bava_handle, uint8_t id);
