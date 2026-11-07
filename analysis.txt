@@ -1,0 +1,81 @@
+BAVA Protocol v2.0: Embedded Architecture & MISRA-C Static Analysis Audit
+
+System Scope: Bare-Metal Point-to-Point (P2P) UART Communication
+Target Architectures: 8-bit (e.g., AVR ATmega), 16-bit, and 32-bit (e.g., ARM Cortex-M, ESP32, RISC-V) Microcontrollers
+Memory Model: Static RAM only, Zero Dynamic Heap Allocation (malloc/free prohibited)
+
+1. Validation of Known Peer-Review Bugs
+
+A line-by-line trace through include/bava.h, src/bava_state.c, src/bava_dict.c, and src/bava_tx.c confirms that all six flagged vulnerabilities still exist in the active codebase:
+
+1.1 False ACKs on Size Mismatch or Missing ID
+Verdict: CONFIRMED (Vulnerability Exists)
+Code Trace: In src/bava_state.c:
+c
+if (bava_handle->rx_cmd == BAVA_WRITE)
+{
+    bava_internal_update(bava_handle, bava_handle->rx_id, bava_handle->rx_payload, bava_handle->rx_len);
+    bava_cmd_write_ack(bava_handle, bava_handle->rx_id);
+}
+In src/bava_dict.c, bava_internal_update() returns void. When the variable ID is not registered, or when bava_handle->variables[i].size != size, the loop finishes and exits with no action taken. The incoming write is dropped, yet bava_cmd_write_ack() is unconditionally executed. The transmitting node receives a valid BAVA_WRITE_ACK and assumes the remote state was updated when it was silently dropped.
+1.2 ISR Deadlock and Blocking Mutex Calls in RX Parsing Context
+Verdict: CONFIRMED (Critical Architectural Flaw Exists)
+Code Trace: bava_process_byte() is explicitly designed as a stream byte parser invoked directly inside a UART RX ISR. Upon frame delimiter arrival (0x00), lines 21 and 34 in src/bava_state.c invoke bava_cmd_write_ack() or bava_cmd_read_request(), which route to bava_internal_send_packet() in src/bava_tx.c:
+c
+bava_tx_lock(bava_handle);
+RTOS Targets (ESP-IDF, CMSIS-RTOS, Zephyr): bava_tx_lock() invokes xSemaphoreTake(..., portMAX_DELAY), osMutexAcquire(..., osWaitForever), or k_mutex_lock(..., K_FOREVER). In all RTOS kernels, acquiring a blocking mutex from an ISR is strictly prohibited and immediately triggers a kernel panic or hard fault.
+Bare-Metal / Arduino: bava_tx_lock() spins on atomic_flag_test_and_set(&bava_handle->tx_lock). If the main loop thread was interrupted by the UART RX ISR while holding tx_lock, the main thread is suspended. The ISR spins 1,000,000 times on the same core, cannot obtain the lock, breaks out, and corrupts tx_buffer and cobs_buffer while the main thread's packet is half-formed.
+1.3 Dictionary Access Control (Unchecked Variable Overwrites)
+Verdict: CONFIRMED (Vulnerability Exists)
+Code Trace: In include/bava.h, bava_var_t only maintains id, var_ptr, size, and updated. In src/bava_dict.c, incoming BAVA_WRITE commands blindly execute memcpy(bava_handle->variables[i].var_ptr, payload, size). Any peer can overwrite read-only telemetry, device configurations, hardware status words, or calibration coefficients.
+1.4 Unsafe Registration Validation
+Verdict: CONFIRMED (Vulnerability Exists)
+Code Trace: In src/bava_dict.c, bava_register_var performs only if (bava_handle->var_count >= BAVA_MAX_VARIABLES) return -1;. It completely omits validation for:
+bava_handle == NULL (null pointer dereference crash).
+variable_pointer == NULL (stored null pointer results in crash during subsequent memcpy or TX).
+variable_size == 0 or variable_size > BAVA_MAX_PAYLOAD (variables exceeding max payload are truncated on TX and can never be matched on RX).
+Duplicate id (registering an existing ID appends a duplicate entry; all dictionary searches match on the first entry, orphaning the second).
+1.5 Data Tearing on Shared Multi-Byte Variables
+Verdict: CONFIRMED (Vulnerability Exists)
+Code Trace: In src/bava_dict.c, bava_internal_update() disables interrupts or acquires a spinlock while executing memcpy() into var_ptr. However, on the reading side:
+The main loop reads multi-byte variables directly or checks bava_var_updated() without entering a critical section. On 8-bit/16-bit architectures, reading a 32-bit integer or float takes multiple instructions. An RX ISR firing mid-read mutates the bytes, causing corrupted (torn) values.
+In src/bava_tx.c, bava_send_write() passes var_ptr to bava_internal_send_packet(), which copies the memory while holding only tx_lock. tx_lock does not disable the RX interrupt.
+1.6 Timeout Cascade Annihilating Subsequent Valid Frames
+Verdict: CONFIRMED (Vulnerability Exists)
+Code Trace: In src/bava_state.c:
+c
+if (bava_handle->rx_state != BAVA_STATE_WAIT_ZERO && 
+    bava_handle->rx_state != BAVA_STATE_WAIT_OVERHEAD &&
+   (bava_handle->current_time_ms - bava_handle->start_time) > BAVA_RX_TIMEOUT)
+{
+    bava_handle->rx_state = BAVA_STATE_WAIT_ZERO;
+    ...
+    return;
+}
+RX timeout is evaluated lazily only when a byte arrives. If inter-packet silence exceeds BAVA_RX_TIMEOUT after an aborted frame, the first byte of the next incoming frame (the COBS overhead byte) triggers the condition. It drops that byte, forces rx_state = BAVA_STATE_WAIT_ZERO, and returns. Because rx_state is now WAIT_ZERO, all remaining bytes of the new valid frame are discarded until a 0x00 delimiter arrives. One timeout destroys two packets.
+2. Discovered Hidden Bugs (Static Analysis)
+CRITICAL SEVERITY
+[BUG-H01] Mutual Exclusion Failure on Spinlock Timeout in bava_tx_lock: When spin_count > 1000000UL, the loop executes break;. Execution proceeds straight into bava_internal_send_packet() without holding tx_lock, overwriting tx_buffer and cobs_buffer while another context is actively transmitting. At the end, line 201 calls bava_tx_unlock(), clearing the lock held by the other context.
+HIGH SEVERITY
+[BUG-H02] TX Completion vs. is_waiting_ack Flag Race Condition: In src/bava_tx.c, tx_callback() is invoked before setting bava_handle->is_waiting_ack = true. On fast full-duplex UARTs, loopback, or DMA, the remote node's ACK can be received and processed by bava_process_byte() before the local TX thread executes line 194. The incoming ACK is discarded because is_waiting_ack is still false. The TX thread then sets is_waiting_ack = true, stranding the sender until BAVA_TX_TIMEOUT expires.
+[BUG-H03] Non-Atomic Shared Timer State and Missing volatile Qualifiers: In include/bava.h, current_time_ms, start_time, tx_timestamp, pending_ack_id, and pending_ack_cmd are shared across threads/ISRs without volatile. Furthermore, on 8-bit/16-bit MCUs, reading/writing uint32_t current_time_ms takes 4 separate instructions. Preemption during bava_tick() causes torn timestamp reads in bava_process_byte(), resulting in wild timer jumps.
+[BUG-H04] Unchecked Transaction Re-entrancy Overwrites Pending Context: In src/bava_tx.c, transmission functions (bava_send_write, bava_send_read) do not check if is_waiting_ack is already active. Calling a send function while awaiting an ACK overwrites pending_ack_id and tx_timestamp, stranding the previous transaction.
+MEDIUM SEVERITY
+[BUG-H05] Unconditional Byte Reversal Corrupts Big-Endian Targets and Byte Arrays: In include/bava.h, bava_htons() and bava_htonl() unconditionally swap bytes. On big-endian MCUs, this outputs incorrect little-endian wire data. In src/bava_tx.c and src/bava_dict.c, the code swaps bytes whenever size == 2 or size == 4. Any 2-byte or 4-byte raw byte array (e.g. MAC address, status codes, ASCII strings) gets corrupted.
+[BUG-H06] Remote Read of Unregistered Variable Hangs Peer: In src/bava_tx.c, if bava_cmd_read_request() cannot find the requested id in the dictionary, it returns silently without sending a response or error frame, causing the peer to hang until its TX timeout expires.
+[BUG-H07] Desynchronization in bava_send_raw_write When Payload Pointer is NULL: In src/bava_tx.c, if pointer == NULL while len > 0, the length header is written as len, but payload copying is skipped and CRC is calculated with len = 0. The transmitted packet contains a non-zero length followed immediately by CRC bytes, causing framing rejection on the peer.
+[BUG-H08] RX Timeout Inactivity Hang During Bus Silence: In src/bava_state.c, RX timeout is evaluated only when a byte arrives. If communication ceases mid-packet, bava_tick never checks the RX timeout. The state machine remains frozen in BAVA_STATE_READ_* indefinitely until an external byte triggers it.
+LOW SEVERITY
+[BUG-H09] COBS Buffer Overflow Risk for Payloads 
+≥
+248
+≥248 Bytes: In include/bava.h, BAVA_COBS_FRAME_MAX_SIZE is statically calculated as BAVA_RAW_FRAME_MAX_SIZE + 2U. Standard COBS worst-case overhead is 
+⌈
+𝑁
+/
+254
+⌉
++
+1
+⌈N/254⌉+1 bytes plus delimiter. For custom builds with BAVA_MAX_PAYLOAD >= 248, raw frames exceed 254 bytes, requiring 2 overhead bytes (+3 total expansion), causing a 1-byte overflow on cobs_buffer.
+[BUG-H10] MISRA-C Rule 10.1 & 10.4 Integer Promotion Violations in Bitwise Operations: In src/bava_crc.c and include/bava.h, bitwise shifts on uint16_t promote to signed int. On 16-bit architectures, shifting bit 15 into the sign bit triggers undefined behavior. Furthermore, bare integer literals lack unsigned U suffixes.
