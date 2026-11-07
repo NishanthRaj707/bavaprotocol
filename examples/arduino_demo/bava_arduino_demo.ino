@@ -57,8 +57,8 @@ void setup() {
     bava_handle.yield_callback = arduino_bava_yield;
 
     // 4. Register Telemetry Variable into BAVA Dictionary
-    int8_t status = bava_register_var(&bava_handle, TELEMETRY_VAR_ID, &sys_telemetry, sizeof(sys_telemetry));
-    if (status != 0) {
+    bool status = bava_register_var(&bava_handle, TELEMETRY_VAR_ID, &sys_telemetry, sizeof(sys_telemetry), BAVA_PERM_READ_WRITE);
+    if (!status) {
         // Variable registration failed (dictionary full or invalid)
         while (1);
     }

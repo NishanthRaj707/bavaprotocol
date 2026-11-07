@@ -109,8 +109,8 @@ int main(void)
     static uint32_t control_command = 0;
 
     // 3. Register variables to unique 8-bit IDs in the Object Dictionary
-    bava_register_var(&bava_handle, BAVA_ID_TELEMETRY, &local_telemetry, sizeof(local_telemetry));
-    bava_register_var(&bava_handle, BAVA_ID_SYS_CONTROL, &control_command, sizeof(control_command));
+    bava_register_var(&bava_handle, BAVA_ID_TELEMETRY, &local_telemetry, sizeof(local_telemetry), BAVA_PERM_READ_WRITE);
+    bava_register_var(&bava_handle, BAVA_ID_SYS_CONTROL, &control_command, sizeof(control_command), BAVA_PERM_READ_WRITE);
 
     printk("Object Dictionary initialized: Telemetry ID 0x%02X registered (%u bytes).\n",
            BAVA_ID_TELEMETRY, (unsigned int)sizeof(local_telemetry));

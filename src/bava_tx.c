@@ -223,8 +223,9 @@ void bava_poll(bava_handle_t* bava_handle)
     if (bava_handle->pending_ack_tx)
     {
         uint8_t ack_id = bava_handle->pending_ack_id;
+        bava_status_t ack_status = bava_handle->pending_ack_status;
         bava_handle->pending_ack_tx = false;
-        bava_cmd_write_ack(bava_handle, ack_id);
+        bava_cmd_write_ack(bava_handle, ack_id, ack_status);
     }
 
     if (bava_handle->pending_read_resp_tx)
@@ -244,7 +245,7 @@ void bava_tick(bava_handle_t* bava_handle, uint32_t system_tick_ms)
         bava_handle->is_waiting_ack = false;
 
         if (bava_handle->error_callback != NULL) {
-            bava_handle->error_callback(bava_handle->waiting_ack_id, BAVA_ERR_TIMEOUT);
+            bava_handle->error_callback(bava_handle->waiting_ack_id, BAVA_STATUS_ERR_TIMEOUT);
         }
     }
 }
@@ -275,9 +276,10 @@ void bava_send_raw_write(bava_handle_t* bava_handle, uint8_t id, const uint8_t* 
     bava_internal_send_packet(bava_handle, BAVA_WRITE, 0, id, pointer, len);
 }
 
-void bava_cmd_write_ack(bava_handle_t* bava_handle, uint8_t id)
+void bava_cmd_write_ack(bava_handle_t* bava_handle, uint8_t id, bava_status_t status)
 {
-    bava_internal_send_packet(bava_handle, BAVA_WRITE_ACK, 0, id, NULL, 0);
+    uint8_t status_byte = (uint8_t)status;
+    bava_internal_send_packet(bava_handle, BAVA_WRITE_ACK, 0, id, &status_byte, 1U);
 }
 
 void bava_cmd_read_request(bava_handle_t* bava_handle, uint8_t id)

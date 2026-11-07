@@ -76,8 +76,8 @@ void app_main(void) {
     bava_tick(&bava, (uint32_t)esp_log_timestamp());    
 
     // Register Object Dictionary Variables
-    bava_register_var(&bava, 0x01, &motor_speed_rpm, sizeof(motor_speed_rpm));
-    bava_register_var(&bava, 0x02, &sensor_status_flags, sizeof(sensor_status_flags));
+    bava_register_var(&bava, 0x01, &motor_speed_rpm, sizeof(motor_speed_rpm), BAVA_PERM_READ_WRITE);
+    bava_register_var(&bava, 0x02, &sensor_status_flags, sizeof(sensor_status_flags), BAVA_PERM_READ_WRITE);
 
     ESP_LOGI(TAG, "BAVA Protocol Stack online. Listening on UART %d...", UART_PORT_NUM);
 

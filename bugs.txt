@@ -11,7 +11,7 @@ PART 1: VALIDATION OF PEER-REVIEW KNOWN BUGS
 --------------------------------------------------------------------------------
 
 [BUG-K01] - [HIGH] - False ACKs on Dictionary Size Mismatch / Unregistered ID
-Status: UNTACKLED
+Status: TACKLED
 Root Cause in Code:
 In `src/bava_state.c` (lines 18-22), when `rx_cmd == BAVA_WRITE`, `bava_internal_update()` is called followed immediately by `bava_cmd_write_ack()`. In `src/bava_dict.c` (lines 88-146), `bava_internal_update()` returns `void`. If the variable ID is not present in `variables[]` or if `bava_handle->variables[i].size != size`, the function quietly returns without performing the update. The write is silently dropped, yet `bava_cmd_write_ack()` transmits a success ACK back to the remote sender.
 Required Patch:
@@ -27,14 +27,14 @@ Required Patch:
 Decouple RX parsing from TX execution. Remove synchronous transmission calls from `bava_process_byte()`. Set an atomic flag/queue (e.g. `pending_ack_needed = true; pending_ack_id = id;`) that is serviced asynchronously by the non-ISR main thread inside `bava_tick()` or `bava_poll()`. Alternatively, allocate a dedicated non-blocking ISR ACK transmit path with its own independent buffer.
 
 [BUG-K03] - [HIGH] - Missing Dictionary Access Control (Unauthorized Overwrites)
-Status: UNTACKLED
+Status: TACKLED
 Root Cause in Code:
 In `include/bava.h` (lines 72-78) and `src/bava_dict.c` (lines 43-59), `bava_var_t` and `bava_register_var()` lack permission flags (e.g., Read-Only vs. Read-Write). In `bava_internal_update()` (`src/bava_dict.c`, line 126), incoming `BAVA_WRITE` commands blindly execute `memcpy()` into the target variable memory. A remote node can overwrite local calibration constants, read-only sensor values, device serial numbers, or internal state variables.
 Required Patch:
 Extend `bava_var_t` with an `access_flags` member (e.g., `BAVA_PERM_RO = 0x01`, `BAVA_PERM_RW = 0x02`). Update `bava_register_var()` (or add `bava_register_var_ext()`) to enforce permission assignment. In `bava_internal_update()`, check that the variable possesses write permissions before executing the memory copy.
 
 [BUG-K04] - [HIGH] - Unsafe Registration Input Validation
-Status: UNTACKLED
+Status: TACKLED
 Root Cause in Code:
 In `src/bava_dict.c` (lines 43-59), `bava_register_var()` only verifies `var_count >= BAVA_MAX_VARIABLES`. It fails to validate:
 1. `bava_handle == NULL` (null pointer dereference crash).

@@ -1,8 +1,8 @@
 #include "bava.h"
 
-extern void bava_internal_update(bava_handle_t* bava_handle, uint8_t id, const uint8_t* payload, uint8_t size);
+extern bava_status_t bava_internal_update(bava_handle_t* bava_handle, uint8_t id, const uint8_t* payload, uint8_t size);
 extern void bava_cmd_read_request(bava_handle_t* bava_handle, uint8_t id);
-extern void bava_cmd_write_ack(bava_handle_t* bava_handle, uint8_t id);
+extern void bava_cmd_write_ack(bava_handle_t* bava_handle, uint8_t id, bava_status_t status);
 extern void bava_bus_cmd_write_ack(bava_handle_t* bava_handle, uint8_t id, uint8_t receiver_id);
 extern void bava_bus_cmd_read_request(bava_handle_t* bava_handle, uint8_t id, uint8_t receiver_id);
 
@@ -17,17 +17,19 @@ void bava_process_byte(bava_handle_t* bava_handle, uint8_t rx_byte)
             {
                 if (bava_handle->rx_cmd == BAVA_WRITE)
                 {
-                    bava_internal_update(bava_handle, bava_handle->rx_id, bava_handle->rx_payload, bava_handle->rx_len);
+                    bava_status_t status = bava_internal_update(bava_handle, bava_handle->rx_id, bava_handle->rx_payload, bava_handle->rx_len);
                     bava_handle->pending_ack_id = bava_handle->rx_id;
+                    bava_handle->pending_ack_status = status;
                     bava_handle->pending_ack_tx = true;
                 }
                 else if (bava_handle->rx_cmd == BAVA_BUS_WRITE)
                 {
-                    bava_internal_update(bava_handle, bava_handle->rx_id, bava_handle->rx_payload, bava_handle->rx_len);
+                    bava_status_t status = bava_internal_update(bava_handle, bava_handle->rx_id, bava_handle->rx_payload, bava_handle->rx_len);
                     // Prevent bus contention: only ACK unicast writes, never broadcast destination or broadcast sender
                     if (bava_handle->rx_node_id != BAVA_BROADCAST_NODE_ID && bava_handle->rx_sender_id != BAVA_BROADCAST_NODE_ID)
                     {
                         bava_handle->pending_ack_id = bava_handle->rx_id;
+                        bava_handle->pending_ack_status = status;
                         bava_handle->pending_ack_tx = true;
                     }
                 }
@@ -52,9 +54,21 @@ void bava_process_byte(bava_handle_t* bava_handle, uint8_t rx_byte)
                     {
                         bava_handle->is_waiting_ack = false;
                     }
-                    if (bava_handle->rx_cmd == BAVA_READ_RESP || bava_handle->rx_cmd == BAVA_BUS_READ_RESP)
+
+                    if (bava_handle->rx_cmd == BAVA_WRITE_ACK || bava_handle->rx_cmd == BAVA_BUS_WRITE_ACK)
                     {
-                        bava_internal_update(bava_handle, bava_handle->rx_id, bava_handle->rx_payload, bava_handle->rx_len);
+                        if (bava_handle->rx_len >= 1U)
+                        {
+                            bava_status_t ack_status = (bava_status_t)bava_handle->rx_payload[0];
+                            if (ack_status != BAVA_STATUS_OK && bava_handle->error_callback != NULL)
+                            {
+                                bava_handle->error_callback(bava_handle->rx_id, ack_status);
+                            }
+                        }
+                    }
+                    else if (bava_handle->rx_cmd == BAVA_READ_RESP || bava_handle->rx_cmd == BAVA_BUS_READ_RESP)
+                    {
+                        (void)bava_internal_update(bava_handle, bava_handle->rx_id, bava_handle->rx_payload, bava_handle->rx_len);
                     }
                 }
             }
