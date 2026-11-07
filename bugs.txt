@@ -54,7 +54,7 @@ Required Patch:
 Provide a thread-safe / ISR-safe accessor function: `bool bava_read_var(bava_handle_t *bava_handle, uint8_t id, void *dest_buf, uint8_t buf_size)`. Wrap the memory copy inside the target critical section (`rx_mux` or `enter_critical()`). Wrap the payload read in `bava_send_write()` with the same critical section.
 
 [BUG-K06] - [HIGH] - Timeout Cascade Annihilating Subsequent Valid Frames
-Status: UNTACKLED
+Status: TACKLED
 Root Cause in Code:
 In `src/bava_state.c` (lines 65-75), RX timeout is evaluated lazily inside `bava_process_byte()` upon receiving a byte. If the bus experienced silence after an aborted frame, the first byte of the *next* valid frame triggers `(current_time_ms - start_time) > BAVA_RX_TIMEOUT`. The parser drops that byte (the COBS overhead byte of the new frame!), sets `rx_state = BAVA_STATE_WAIT_ZERO`, and returns. Consequently, all subsequent bytes of the new valid frame are discarded until the next delimiter `0x00`.
 Required Patch:
@@ -72,21 +72,21 @@ Required Patch:
 Make `bava_tx_lock()` return `bool` (`true` on success, `false` on lock timeout/failure). In `bava_internal_send_packet()`, verify lock acquisition; if false, abort immediately, trigger an error callback, and DO NOT call `bava_tx_unlock()`.
 
 [BUG-H02] - [HIGH] - Out-of-Order TX vs. `is_waiting_ack` Flag Race Condition
-Status: UNTACKLED
+Status: TACKLED
 Root Cause in Code:
 In `src/bava_tx.c` (lines 184-201), `bava_handle->tx_callback()` is invoked on line 186 *before* setting `bava_handle->is_waiting_ack = true` on line 194. On high-speed full-duplex UARTs or interrupt-driven DMA TX, the remote node's ACK can arrive and be processed by `bava_process_byte()` before the local TX thread executes line 194. `bava_process_byte()` rejects the ACK because `is_waiting_ack` is still `false`. The TX thread then sets `is_waiting_ack = true`, stranding the sender until `BAVA_TX_TIMEOUT` expires.
 Required Patch:
 Set `is_waiting_ack = true`, `pending_ack_id = id`, `pending_ack_cmd = cmd`, and `tx_timestamp = current_time_ms` *before* calling `tx_callback`. If `tx_callback` reports an error, revert `is_waiting_ack = false`.
 
 [BUG-H03] - [HIGH] - Non-Atomic Timer State and Missing `volatile` Qualifiers
-Status: UNTACKLED
+Status: TACKLED
 Root Cause in Code:
 In `include/bava.h` (lines 119-130), `current_time_ms`, `start_time`, `tx_timestamp`, `pending_ack_id`, and `pending_ack_cmd` are shared across the main loop (`bava_tick`, `bava_send_*`) and UART RX ISR (`bava_process_byte`), but lack the `volatile` qualifier. Compilers can cache their values in CPU registers. Additionally, on 8-bit/16-bit architectures, reading/writing 32-bit `uint32_t current_time_ms` takes multiple instructions. Non-atomic reads during interrupt preemption result in torn timestamp values and erroneous timeouts.
 Required Patch:
 Add `volatile` qualifiers to all state-tracking variables shared with ISRs. Use an interrupt-disabled critical section or atomic 32-bit access helpers when reading or writing `current_time_ms`, `start_time`, and `tx_timestamp` on 8-bit/16-bit microcontrollers.
 
 [BUG-H04] - [HIGH] - Unchecked Transaction Re-entrancy Overwriting Active Transaction State
-Status: UNTACKLED
+Status: TACKLED
 Root Cause in Code:
 In `src/bava_tx.c` (lines 96-105, 193-198), `bava_send_write()`, `bava_send_read()`, and `bava_send_raw_write()` do not check `is_waiting_ack` prior to initiating transmission. If the application issues a second command while a previous command is still awaiting an ACK, the second command overwrites `pending_ack_id`, `pending_ack_cmd`, and `tx_timestamp`. The first transaction's ACK expectation is lost, and the first transaction is orphaned.
 Required Patch:
@@ -115,7 +115,7 @@ Required Patch:
 In `bava_internal_send_packet()`, validate that if `payload == NULL`, `payload_size` MUST be forced to 0.
 
 [BUG-H08] - [MEDIUM] - Unhandled RX Timeout Inactivity Hang During Prolonged Bus Silence
-Status: UNTACKLED
+Status: TACKLED
 Root Cause in Code:
 In `src/bava_state.c` (lines 65-75), RX timeout is evaluated only when a byte is received. If a packet is interrupted and the bus goes completely silent, `bava_tick()` (`src/bava_tx.c`, lines 208-220) never checks RX timeout. The receiver remains trapped in `BAVA_STATE_READ_*` indefinitely until an external byte arrives.
 Required Patch:

@@ -91,6 +91,7 @@ typedef enum
     BAVA_STATUS_ERR_RO                     = 0x01,
     BAVA_STATUS_ERR_SIZE                   = 0x02,
     BAVA_STATUS_ERR_NOT_FOUND              = 0x03,
+    BAVA_STATUS_ERR_BUSY                   = 0x04,
     BAVA_STATUS_ERR_TIMEOUT                = 0x11,
     BAVA_STATUS_ERR_INVALID_PAYLOAD_LENGTH = 0x12
 } bava_status_t;
@@ -161,8 +162,8 @@ typedef struct
     uint8_t cobs_distance;
     uint8_t rx_payload[BAVA_MAX_PAYLOAD];
 
-    uint8_t waiting_ack_id;       // The outbound request ID waiting for an ACK
-    uint8_t waiting_ack_cmd;     
+    volatile uint8_t waiting_ack_id;       // The outbound request ID waiting for an ACK
+    volatile uint8_t waiting_ack_cmd;     
     volatile bool is_waiting_ack; // Blocks new TX until true or timeout
 
     // Asynchronous Polling Dispatch (fixes ISR deadlock)
@@ -176,9 +177,9 @@ typedef struct
     uint8_t cobs_buffer[BAVA_COBS_FRAME_MAX_SIZE];
 
     // Timeout Tracking
-    uint32_t current_time_ms;  // Continuously updated by the user or millis()
-    uint32_t tx_timestamp;     // Records the exact time a packet was fired
-    uint32_t start_time;       // Records start time for RX frame timeout
+    volatile uint32_t current_time_ms;  // Continuously updated by the user or millis()
+    volatile uint32_t tx_timestamp;     // Records the exact time a packet was fired
+    volatile uint32_t start_time;       // Records start time for RX frame timeout
 
     // Error Handling
     bava_error_cb_t error_callback;
@@ -231,19 +232,19 @@ void bava_set_error_callback(bava_handle_t* bava_handle, bava_error_cb_t error_c
 void bava_process_byte(bava_handle_t *bava_handle, uint8_t byte);
 void bava_poll(bava_handle_t* bava_handle);
 bool bava_read_var(bava_handle_t* bava_handle, uint8_t id, void* dest_buf, uint8_t size);
-void bava_send_write(bava_handle_t* bava_handle, uint8_t id);
-void bava_send_raw_write(bava_handle_t* bava_handle, uint8_t id, const uint8_t* pointer, uint8_t len);
-void bava_send_read(bava_handle_t* bava_handle, uint8_t id);
+bava_status_t bava_send_write(bava_handle_t* bava_handle, uint8_t id);
+bava_status_t bava_send_raw_write(bava_handle_t* bava_handle, uint8_t id, const uint8_t* pointer, uint8_t len);
+bava_status_t bava_send_read(bava_handle_t* bava_handle, uint8_t id);
 bool bava_var_updated(bava_handle_t* bava_handle, uint8_t id);
 void bava_var_clear_update_status(bava_handle_t* bava_handle, uint8_t id);
 
 // Bus related functions
 void bava_bus_init(bava_handle_t* bava_handle, bava_bus_tx_cb_t bava_bus_tx_callback, uint8_t node_id);
-void bava_bus_send_read(bava_handle_t* bava_handle, uint8_t id, uint8_t receiver_id);
-void bava_bus_send_write(bava_handle_t* bava_handle, uint8_t id, uint8_t receiver_id);
-void bava_bus_send_raw_write(bava_handle_t* bava_handle, uint8_t id, const uint8_t* pointer, uint8_t len, uint8_t receiver_id);
-void bava_bus_broadcast_write(bava_handle_t* bava_handle, uint8_t id);
-void bava_bus_broadcast_raw_write(bava_handle_t* bava_handle, uint8_t id, const uint8_t* pointer, uint8_t len);
+bava_status_t bava_bus_send_read(bava_handle_t* bava_handle, uint8_t id, uint8_t receiver_id);
+bava_status_t bava_bus_send_write(bava_handle_t* bava_handle, uint8_t id, uint8_t receiver_id);
+bava_status_t bava_bus_send_raw_write(bava_handle_t* bava_handle, uint8_t id, const uint8_t* pointer, uint8_t len, uint8_t receiver_id);
+bava_status_t bava_bus_broadcast_write(bava_handle_t* bava_handle, uint8_t id);
+bava_status_t bava_bus_broadcast_raw_write(bava_handle_t* bava_handle, uint8_t id, const uint8_t* pointer, uint8_t len);
 
 // Checksum functions
 uint16_t bava_crc_update(uint16_t crc, uint8_t data);

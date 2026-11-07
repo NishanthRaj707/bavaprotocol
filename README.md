@@ -124,7 +124,7 @@ static void hardware_uart_tx(const uint8_t *data, uint16_t size)
 }
 
 /* Error callback: 0x11 = acknowledgement timeout, 0x12 = invalid payload. */
-static void bava_error_handler(uint8_t id, uint8_t error_code)
+static void bava_error_handler(uint8_t id, bava_status_t error_code)
 {
     (void)id;
     (void)error_code;
@@ -135,36 +135,42 @@ void setup(void)
     Serial.begin(115200);
 
     bava_init(&bava_handle, hardware_uart_tx);
-    bava_handle.error_callback = bava_error_handler;
+    bava_set_error_callback(&bava_handle, bava_error_handler);
 
-    if (bava_register_var(&bava_handle, TELEMETRY_VAR_ID,
-                          &sys_telemetry, sizeof(sys_telemetry)) != 0) {
-        /* Registration failed: dictionary full or invalid parameters. */
+    if (!bava_register_var(&bava_handle, TELEMETRY_VAR_ID,
+                           &sys_telemetry, sizeof(sys_telemetry), BAVA_PERM_READ_WRITE)) {
+        /* Registration failed: duplicate ID, size limit exceeded, or dictionary full. */
     }
 }
 
 void loop(void)
 {
-    /* 1. Feed received bytes to the parser. */
+    /* 1. Feed received bytes to the parser (can be called from UART RX ISR). */
     while (Serial.available() > 0) {
         bava_process_byte(&bava_handle, (uint8_t)Serial.read());
     }
 
-    /* 2. Consume a value written by the remote node. */
+    /* 2. Dispatch pending ACKs / read responses and proactive timeouts outside ISR. Required. */
+    bava_poll(&bava_handle);
+
+    /* 3. Service acknowledgement timeouts and advance tick. Required. */
+    bava_tick(&bava_handle, millis());
+
+    /* 4. Consume a value written by the remote node. */
     if (bava_var_updated(&bava_handle, TELEMETRY_VAR_ID)) {
         bava_var_clear_update_status(&bava_handle, TELEMETRY_VAR_ID);
         /* sys_telemetry now holds the validated remote value. */
     }
 
-    /* 3. Service acknowledgement timeouts. Required. */
-    bava_tick(&bava_handle, millis());
-
-    /* 4. Periodic, non-blocking transmission. */
+    /* 5. Periodic, non-blocking transmission with re-entrancy protection. */
     uint32_t now = millis();
     if (now - last_tx_ms >= 50) {
         last_tx_ms = now;
         sys_telemetry++;
-        bava_send_write(&bava_handle, TELEMETRY_VAR_ID);
+        bava_status_t st = bava_send_write(&bava_handle, TELEMETRY_VAR_ID);
+        if (st == BAVA_STATUS_ERR_BUSY) {
+            /* Outbound TX deferred: previous transaction is still awaiting an ACK. */
+        }
     }
 }
 ```
@@ -185,7 +191,7 @@ Declared in `include/bava.h`.
 | :--- | :--- |
 | `bava_handle_t` | Protocol instance. Holds the state machine, dictionary and transmit state. One instance per link. |
 | `bava_tx_cb_t` | Transmit callback: `void (*)(const uint8_t *data, uint16_t size)`. |
-| `error_callback` | Optional member of `bava_handle_t`: `void (*)(uint8_t id, uint8_t error_code)`. |
+| `bava_error_cb_t` | Error callback: `void (*)(uint8_t id, bava_status_t error)`. |
 | `BAVA_MAX_VARIABLES` | Dictionary capacity. Default 32. |
 | `BAVA_MAX_PAYLOAD` | Maximum payload length in bytes. Default 32. |
 
@@ -194,21 +200,29 @@ Declared in `include/bava.h`.
 | Function | Signature | Description |
 | :--- | :--- | :--- |
 | `bava_init` | `void bava_init(bava_handle_t *handle, bava_tx_cb_t tx_cb)` | Initializes the handle, resets the receive state machine and registers the transmit callback. |
-| `bava_register_var` | `int8_t bava_register_var(bava_handle_t *handle, uint8_t id, void *ptr, uint8_t size)` | Binds an identifier to a variable pointer and size in bytes. Returns `0` on success, `-1` if the dictionary is full or a parameter is invalid. |
-| `bava_process_byte` | `void bava_process_byte(bava_handle_t *handle, uint8_t byte)` | Passes one received byte to the parser. On a complete, valid frame, performs the command: commits a WRITE payload to the registered variable, answers a READ, or processes an acknowledgement. |
-| `bava_tick` | `void bava_tick(bava_handle_t *handle, uint32_t system_tick_ms)` | Advances the timeout logic using a millisecond timestamp. Expires pending acknowledgements and releases the transmit lock. |
-| `bava_send_write` | `void bava_send_write(bava_handle_t *handle, uint8_t id)` | Reads the registered variable, builds and COBS-encodes a WRITE frame, and passes it to the transmit callback. |
-| `bava_send_raw_write` | `void bava_send_raw_write(bava_handle_t *handle, uint8_t id, const uint8_t *ptr, uint8_t len)` | Sends a WRITE frame for a remote identifier from a caller-supplied buffer. No local registration is required. |
-| `bava_send_read` | `void bava_send_read(bava_handle_t *handle, uint8_t id)` | Sends a READ frame requesting the remote value of an identifier. The response is committed to the local variable registered under the same identifier. |
+| `bava_set_error_callback` | `void bava_set_error_callback(bava_handle_t *handle, bava_error_cb_t error_cb)` | Registers the user error callback for protocol exceptions, timeouts, and negative acknowledgements. |
+| `bava_register_var` | `bool bava_register_var(bava_handle_t *handle, uint8_t id, void *ptr, uint8_t size, uint8_t permissions)` | Binds an identifier to a variable pointer, size, and permissions (`BAVA_PERM_READ_WRITE` or `BAVA_PERM_READ_ONLY`). Returns `true` on success, `false` on failure. |
+| `bava_process_byte` | `void bava_process_byte(bava_handle_t *handle, uint8_t byte)` | Passes one received byte to the parser. Decoupled from transmission; sets pending flags for deferred processing. Safe for UART RX ISR. |
+| `bava_poll` | `void bava_poll(bava_handle_t *handle)` | Dispatches pending ACKs, read responses, and proactive RX inactivity timeout checks outside ISR context. Required in main loop. |
+| `bava_read_var` | `bool bava_read_var(bava_handle_t *handle, uint8_t id, void *dest_buf, uint8_t size)` | Atomically copies a registered variable into user buffer under an interrupt-disabled critical section, preventing multi-byte data tearing. |
+| `bava_tick` | `void bava_tick(bava_handle_t *handle, uint32_t system_tick_ms)` | Advances the timeout logic using a millisecond timestamp. Expires pending acknowledgements and checks proactive timeouts. |
+| `bava_send_write` | `bava_status_t bava_send_write(bava_handle_t *handle, uint8_t id)` | Reads the registered variable, builds and COBS-encodes a WRITE frame, and passes it to the transmit callback. Returns `BAVA_STATUS_ERR_BUSY` if waiting for previous ACK. |
+| `bava_send_raw_write` | `bava_status_t bava_send_raw_write(bava_handle_t *handle, uint8_t id, const uint8_t *ptr, uint8_t len)` | Sends a WRITE frame for an identifier from a caller-supplied buffer. Returns `BAVA_STATUS_ERR_BUSY` if waiting for previous ACK. |
+| `bava_send_read` | `bava_status_t bava_send_read(bava_handle_t *handle, uint8_t id)` | Sends a READ frame requesting the remote value of an identifier. Returns `BAVA_STATUS_ERR_BUSY` if waiting for previous ACK. |
 | `bava_var_updated` | `bool bava_var_updated(bava_handle_t *handle, uint8_t id)` | Returns `true` if the variable received validated data from the remote node since the flag was last cleared. |
 | `bava_var_clear_update_status` | `void bava_var_clear_update_status(bava_handle_t *handle, uint8_t id)` | Clears the update flag for an identifier. |
 
-### Error codes
+### Status & Error codes (`bava_status_t`)
 
-| Code | Meaning |
-| :---: | :--- |
-| `0x11` | Acknowledgement timeout. A WRITE was not acknowledged within the timeout. |
-| `0x12` | Invalid payload. |
+| Code | Enumeration | Meaning |
+| :---: | :--- | :--- |
+| `0x00` | `BAVA_STATUS_OK` | Success / OK. |
+| `0x01` | `BAVA_STATUS_ERR_RO` | Remote WRITE rejected because variable is registered as Read-Only. |
+| `0x02` | `BAVA_STATUS_ERR_SIZE` | Payload length mismatch with registered dictionary variable size. |
+| `0x03` | `BAVA_STATUS_ERR_NOT_FOUND` | Variable identifier not registered in Object Dictionary. |
+| `0x04` | `BAVA_STATUS_ERR_BUSY` | Outbound request rejected: previous transaction is still awaiting ACK. |
+| `0x11` | `BAVA_STATUS_ERR_TIMEOUT` | Acknowledgement timeout or RX frame inactivity timeout elapsed. |
+| `0x12` | `BAVA_STATUS_ERR_INVALID_PAYLOAD_LENGTH` | Incoming frame payload exceeds `BAVA_MAX_PAYLOAD`. |
 
 ---
 

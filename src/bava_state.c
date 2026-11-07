@@ -79,20 +79,7 @@ void bava_process_byte(bava_handle_t* bava_handle, uint8_t rx_byte)
         return;
     }
 
-    // 2. Timeout logic to evaluate elapsed delta time correctly
-    if (bava_handle->rx_state != BAVA_STATE_WAIT_ZERO && 
-        bava_handle->rx_state != BAVA_STATE_WAIT_OVERHEAD &&
-       (bava_handle->current_time_ms - bava_handle->start_time) > BAVA_RX_TIMEOUT)
-    {
-        bava_handle->rx_state = BAVA_STATE_WAIT_ZERO;
-        if (bava_handle->error_callback != NULL)
-        {
-            bava_handle->error_callback(0, BAVA_ERR_TIMEOUT);
-        }
-        return;
-    }
-
-    // 3. Handle COBS Initial Overhead Byte
+    // 2. Handle COBS Initial Overhead Byte
     if (bava_handle->rx_state == BAVA_STATE_WAIT_OVERHEAD)
     {
         bava_handle->cobs_distance = rx_byte;
