@@ -1,0 +1,29 @@
+{
+  "name": "BAVA",
+  "version": "2.0.0",
+  "description": "Static-memory C99 frame and write validation layer for UART links. Enforces COBS framing, CRC-16 integrity, and size/permission-checked dictionary commits before updating application memory.",
+  "keywords": [
+    "uart",
+    "validation",
+    "cobs",
+    "crc16",
+    "serialization",
+    "static-memory",
+    "embedded"
+  ],
+  "authors": [
+    {
+      "name": "J. Nishanth Raj (BAVA)",
+      "url": "https://github.com/Nishanth707"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Nishanth707/bava.git"
+  },
+  "homepage": "https://github.com/Nishanth707/bava",
+  "license": "GPL-3.0-only",
+  "frameworks": "*",
+  "platforms": "*"
+}
+

@@ -1,6 +1,8 @@
 # BAVA Protocol
 
-Point-to-point binary framing protocol and object dictionary for microcontroller-to-microcontroller variable synchronization over asynchronous serial links. Version 2 uses COBS framing with a `0x00` frame delimiter.
+A small, static-memory C99 validation library that validates every frame on a UART link, and every write it carries, before anything is committed to application memory.
+
+BAVA enables variable exchange between microcontrollers over asynchronous serial byte streams, ensuring no byte reaches application memory unless five sequential validation gates pass. Rather than introducing a new wire format, BAVA integrates established primitives—Consistent Overhead Byte Stuffing (COBS), CRC-16/CCITT-FALSE, and an in-memory ID-to-pointer dictionary—into a deterministic, fail-closed commit pipeline.
 
 [![Espressif Component Registry](https://img.shields.io/badge/Espressif-Component%20Registry-E7352C.svg)](https://components.espressif.com/components/nishanthraj707/bava)
 [![Arduino Library Reference](https://img.shields.io/badge/Arduino-Library%20Reference-00979D.svg)](https://www.arduino.cc/reference/en/libraries/bava-protocol/)
@@ -12,32 +14,97 @@ Point-to-point binary framing protocol and object dictionary for microcontroller
 ## Contents
 
 1. [Overview](#overview)
-2. [Specifications](#specifications)
-3. [Installation](#installation)
-4. [Quick Start](#quick-start)
-5. [Public API](#public-api)
-6. [Wire Format](#wire-format)
-7. [Protocol Behavior](#protocol-behavior)
-8. [Platform Integration](#platform-integration)
-9. [Examples](#examples)
-10. [Directory Structure](#directory-structure)
-11. [Migrating from v1](#migrating-from-v1)
-12. [License](#license)
+2. [The Five Validation Gates](#the-five-validation-gates)
+3. [Core Invariants](#core-invariants)
+4. [Scope & Explicit Non-Goals](#scope--explicit-non-goals)
+5. [Hardware Verification](#hardware-verification)
+6. [Specifications](#specifications)
+7. [Installation](#installation)
+8. [Quick Start](#quick-start)
+9. [Public API](#public-api)
+10. [Wire Format](#wire-format)
+11. [Protocol Behavior](#protocol-behavior)
+12. [Platform Integration](#platform-integration)
+13. [Examples](#examples)
+14. [Directory Structure](#directory-structure)
+15. [Migrating from v1](#migrating-from-v1)
+16. [License](#license)
 
 ---
 
 ## Overview
 
-BAVA binds an 8-bit identifier to a variable in RAM. A node writes a registered variable to its peer, or requests the peer's value, over any byte-oriented serial transport. The receiver validates each frame with a CRC-16 before it modifies memory.
+BAVA binds an 8-bit identifier to an application variable in RAM. A node writes a registered variable to its peer, or requests the peer's value, over any byte-oriented serial transport.
+
+Unlike raw framing scripts or unvalidated serial parsers, BAVA operates as a corruption-rejecting commit gate: incoming byte streams are parsed on-the-fly and checked through structural and dictionary validations. A validated payload is committed to its destination via an atomic memory copy inside a platform critical section only when all gates pass.
 
 Design properties:
 
-- **Static memory.** All state, the dictionary and the transmit buffer are statically allocated. The library does not call `malloc()`, `calloc()` or `free()`.
-- **Direct pointer mapping.** Each identifier maps to a pointer and a size. A validated payload is copied to its destination with `memcpy()` inside a critical section. No text parsing or schema decoding is involved.
-- **COBS framing.** Frames are encoded with Consistent Overhead Byte Stuffing and terminated by `0x00`. Encoding overhead is a fixed 2 bytes (one COBS code byte plus the delimiter) for all payloads of 32 bytes or less, independent of payload content.
-- **Resynchronization at the delimiter.** After a corrupted or truncated frame, the receiver discards data up to the next `0x00` and resumes at the following frame.
-- **Streaming receiver.** `bava_process_byte()` is a non-blocking state machine that accepts one byte per call, so frames split across UART FIFO reads are reassembled correctly.
-- **Transaction timeout.** `bava_tick()` expires unacknowledged transactions and releases the transmit lock without blocking.
+- **Static memory (zero-heap).** All state, dictionary tables, and transmit buffers are statically allocated inside `bava_handle_t`. The library performs zero dynamic memory allocation (`malloc`, `calloc`, or `free`).
+- **Fail-closed dictionary commit.** Each identifier maps to a pointer, size, and permission mask (`BAVA_PERM_READ_ONLY` vs. `BAVA_PERM_READ_WRITE`). Writes targeting unregistered IDs, mismatched payload lengths, or read-only variables are rejected before modifying target memory.
+- **COBS framing.** Frames are delimited by `0x00` and encoded with Consistent Overhead Byte Stuffing. Wire encoding overhead is fixed at 2 bytes (one COBS code byte plus the delimiter) for all payloads of 32 bytes or less, regardless of payload byte contents.
+- **Delimiter resynchronization.** If an in-flight byte is corrupted, truncated, or dropped, the parser safely discards data until the next `0x00` delimiter and re-arms cleanly for subsequent frames.
+- **Streaming non-blocking parser.** `bava_process_byte()` accepts one byte per call without blocking, making it suitable for direct execution from UART RX interrupts or DMA/FIFO poll loops.
+- **Deterministic transaction state.** `bava_tick()` expires unacknowledged transactions and releases the hardware transmit lock without blocking.
+
+---
+
+## The Five Validation Gates
+
+Every incoming frame must sequentially pass five validation gates before any write is committed to application memory:
+
+| Gate | Check Name | Validation Criteria | Rejection Behavior |
+| :---: | :--- | :--- | :--- |
+| **Gate 1** | **Frame Bound** | Checks that accumulated frame size is within `[min_frame_size, BAVA_COBS_FRAME_MAX_SIZE]`. | Rejects empty frames and frames exceeding static buffer ceiling; resets parser state to wait for `0x00`. |
+| **Gate 2** | **COBS Structure** | Verifies on-the-fly COBS code byte distance and boundary containment against the delimiter. | Rejects frames where a COBS code byte points past the received delimiter boundary; discards corrupt frame. |
+| **Gate 3** | **Header Sanity** | Validates command byte (`READ`, `WRITE`, `READ_RESP`, `WRITE_ACK`) and declared length (`LEN <= BAVA_MAX_PAYLOAD`). | Rejects unknown commands and payload lengths inconsistent with the decoded frame size. |
+| **Gate 4** | **Integrity** | Verifies CRC-16/CCITT-FALSE (`0x1021`, init `0xFFFF`) across CMD, ID, LEN, and PAYLOAD bytes. | Rejects frames with bit errors or byte corruptions; zero application memory is modified. |
+| **Gate 5** | **Dictionary & Commit Gate** | Verifies registered ID exists, payload size exactly matches variable size, and `BAVA_PERM_READ_WRITE` is permitted. | Rejects unregistered IDs (`ERR_NOT_FOUND`), read-only writes (`ERR_RO`), or size mismatches (`ERR_SIZE`). On pass, executes atomic copy in critical section. |
+
+---
+
+## Core Invariants
+
+The protocol implementation enforces five operational invariants:
+
+- **I1 (Fail-Closed Commit):** No byte is written to a registered application variable until all five validation gates pass.
+- **I2 (Commit-Before-ACK):** An acknowledgment (`BAVA_STATUS_OK`) is queued only after the variable has been safely committed to memory.
+- **I3 (Side-Effect-Free Rejection):** Any frame failing a gate modifies no application state and invokes the user error callback with the corresponding status code.
+- **I4 (Static & Bounded Footprint):** All buffers, state trackers, and dictionary slots are statically allocated within `bava_handle_t` (`0` heap allocations, 656 B static RAM).
+- **I5 (Delimiter Resynchronization):** Following any wire-level corruption or framing error, the parser resumes cleanly at the next `0x00` frame delimiter.
+
+---
+
+## Scope & Explicit Non-Goals
+
+BAVA is intentionally focused on predictable, deterministic point-to-point microcontroller links:
+
+- **Topology:** Point-to-point byte streams between two microcontrollers (e.g., UART, RS-232, RS-422, or serial wireless bridge).
+- **Dictionary Capacity:** Compile-time bounded up to 32 registered variables (`BAVA_MAX_VARIABLES = 32`).
+- **Payload Capacity:** Compile-time bounded up to 32 bytes per variable payload (`BAVA_MAX_PAYLOAD = 32`).
+- **Transaction Model:** Single outstanding transaction with stop-and-wait ACK semantics; transmit lock is held until peer acknowledgment or timeout.
+- **Wire Overhead:** Deterministic `N + 7` bytes on the wire for an $N$-byte payload.
+- **Explicit Non-Goals:**
+  - No multi-drop bus arbitration or multi-master collision handling.
+  - No dynamic memory allocation or unbounded variable-length streaming.
+  - No floating-point or text-based schema serialization (transfers raw native memory layouts).
+  - No packet fragmentation or multi-hop network routing.
+  - No cryptographic encryption or authentication (intended for direct board-to-board PCB/inter-chassis UART connections).
+
+---
+
+## Hardware Verification
+
+The protocol's zero-heap guarantee and fault-rejection characteristics have been empirically verified on physical microcontroller hardware:
+
+- **Hardware Test Setup:** ESP32 DevKit V1 (Sender) $\leftrightarrow$ STM32F103 Blue Pill (Receiver) over physical UART at 921,600 baud.
+- **Active Fault Injection:** Byte noise injected into 1 out of every 75 transmitted frames at wire level.
+- **Benchmark Run:** Full hardware run log available in [`bava_report.txt`](./bava_report.txt).
+  - **Processed Frames:** > 106,000 frames under continuous bidirectional traffic.
+  - **Memory Stability:** Exactly `0 B` heap delta throughout the entire benchmark (`Heap_Delta = 0`).
+  - **Memory Footprint:** Exact static RAM cost of `sizeof(bava_handle_t) = 656 bytes`.
+  - **Round-Trip Latency:** ~799 µs median round-trip time (`p50`) at 921,600 baud.
+  - **Integrity Proof:** `0` silent corruptions committed to memory across all 106,000 frames under active fault injection.
 
 ---
 

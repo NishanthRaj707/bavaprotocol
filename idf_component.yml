@@ -1,19 +1,19 @@
-version: "1.0.5"
-description: "BAVA Protocol. Universal transport-agnostic zero-allocation framing protocol for UART, SPI, Wi-Fi, BLE."
-url: "https://github.com/NishanthRaj707/bavaprotocol"
+version: "2.0.0"
+description: "Static-memory C99 frame and write validation layer for UART links. Enforces COBS framing, CRC-16 integrity, and size/permission-checked dictionary commits before updating application memory."
+url: "https://github.com/Nishanth707/bava"
+repository: "https://github.com/Nishanth707/bava"
+issues: "https://github.com/Nishanth707/bava/issues"
+license: "GPL-3.0-only"
 maintainers:
-  - "Nishanth Raj <https://github.com/NishanthRaj707>"
+  - "J. Nishanth Raj (BAVA) <https://github.com/Nishanth707>"
 tags:
-  - "protocol"
-  - "framing"
-  - "transport-agnostic"
   - "uart"
-  - "spi"
-  - "ble"
-  - "wifi"
+  - "validation"
+  - "cobs"
+  - "crc16"
   - "serialization"
+  - "static-memory"
   - "embedded"
-  - "bare-metal"
 targets:
   - esp32
   - esp32s2
