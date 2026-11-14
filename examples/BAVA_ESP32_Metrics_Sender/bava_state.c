@@ -3,8 +3,6 @@
 extern bava_status_t bava_internal_update(bava_handle_t* bava_handle, uint8_t id, const uint8_t* payload, uint8_t size);
 extern void bava_cmd_read_request(bava_handle_t* bava_handle, uint8_t id);
 extern void bava_cmd_write_ack(bava_handle_t* bava_handle, uint8_t id, bava_status_t status);
-extern void bava_bus_cmd_write_ack(bava_handle_t* bava_handle, uint8_t id, uint8_t receiver_id);
-extern void bava_bus_cmd_read_request(bava_handle_t* bava_handle, uint8_t id, uint8_t receiver_id);
 
 void bava_process_byte(bava_handle_t* bava_handle, uint8_t rx_byte)
 {
@@ -22,40 +20,19 @@ void bava_process_byte(bava_handle_t* bava_handle, uint8_t rx_byte)
                     bava_handle->pending_ack_status = status;
                     bava_handle->pending_ack_tx = true;
                 }
-                else if (bava_handle->rx_cmd == BAVA_BUS_WRITE)
-                {
-                    bava_status_t status = bava_internal_update(bava_handle, bava_handle->rx_id, bava_handle->rx_payload, bava_handle->rx_len);
-                    // Prevent bus contention: only ACK unicast writes, never broadcast destination or broadcast sender
-                    if (bava_handle->rx_node_id != BAVA_BROADCAST_NODE_ID && bava_handle->rx_sender_id != BAVA_BROADCAST_NODE_ID)
-                    {
-                        bava_handle->pending_ack_id = bava_handle->rx_id;
-                        bava_handle->pending_ack_status = status;
-                        bava_handle->pending_ack_tx = true;
-                    }
-                }
                 else if (bava_handle->rx_cmd == BAVA_READ)
                 {
                     bava_handle->pending_read_resp_id = bava_handle->rx_id;
                     bava_handle->pending_read_resp_tx = true;
                 }
-                else if (bava_handle->rx_cmd == BAVA_BUS_READ)
-                {
-                    // Only reply if sender is not broadcast to avoid bus contention
-                    if (bava_handle->rx_sender_id != BAVA_BROADCAST_NODE_ID)
-                    {
-                        bava_handle->pending_read_resp_id = bava_handle->rx_id;
-                        bava_handle->pending_read_resp_tx = true;
-                    }
-                }
-                else if (bava_handle->rx_cmd == BAVA_WRITE_ACK || bava_handle->rx_cmd == BAVA_READ_RESP ||
-                         bava_handle->rx_cmd == BAVA_BUS_WRITE_ACK || bava_handle->rx_cmd == BAVA_BUS_READ_RESP)
+                else if (bava_handle->rx_cmd == BAVA_WRITE_ACK || bava_handle->rx_cmd == BAVA_READ_RESP)
                 {
                     if (bava_handle->is_waiting_ack && bava_handle->waiting_ack_id == bava_handle->rx_id)
                     {
                         bava_handle->is_waiting_ack = false;
                     }
 
-                    if (bava_handle->rx_cmd == BAVA_WRITE_ACK || bava_handle->rx_cmd == BAVA_BUS_WRITE_ACK)
+                    if (bava_handle->rx_cmd == BAVA_WRITE_ACK)
                     {
                         if (bava_handle->rx_len >= 1U)
                         {
@@ -66,7 +43,7 @@ void bava_process_byte(bava_handle_t* bava_handle, uint8_t rx_byte)
                             }
                         }
                     }
-                    else if (bava_handle->rx_cmd == BAVA_READ_RESP || bava_handle->rx_cmd == BAVA_BUS_READ_RESP)
+                    else if (bava_handle->rx_cmd == BAVA_READ_RESP)
                     {
                         if (bava_handle->rx_len == 0U)
                         {
@@ -124,38 +101,12 @@ void bava_process_byte(bava_handle_t* bava_handle, uint8_t rx_byte)
     {
         case BAVA_STATE_READ_CMD:
              bava_handle->rx_cmd = byte;
-             if (bava_handle->is_bava_bus) {
-                 if (byte == BAVA_BUS_READ || byte == BAVA_BUS_WRITE || byte == BAVA_BUS_READ_RESP || byte == BAVA_BUS_WRITE_ACK) {
-                     bava_handle->rx_state = BAVA_STATE_READ_NODE_ID;
-                 } else {
-                     // Fail-fast mismatch: Bus handle instantly rejects P2P frames or invalid commands
-                     bava_handle->rx_state = BAVA_STATE_WAIT_ZERO;
-                 }
+             if (byte == BAVA_READ || byte == BAVA_WRITE || byte == BAVA_READ_RESP || byte == BAVA_WRITE_ACK) {
+                 bava_handle->rx_state = BAVA_STATE_READ_ID;
              } else {
-                 if (byte == BAVA_READ || byte == BAVA_WRITE || byte == BAVA_READ_RESP || byte == BAVA_WRITE_ACK) {
-                     bava_handle->rx_state = BAVA_STATE_READ_ID;
-                 } else {
-                     // Fail-fast mismatch: P2P handle instantly rejects Bus frames or invalid commands
-                     bava_handle->rx_state = BAVA_STATE_WAIT_ZERO;
-                 }
-             }
-             bava_handle->current_crc = bava_crc_update(bava_handle->current_crc, byte);
-             break;
-        
-        case BAVA_STATE_READ_NODE_ID:
-             bava_handle->rx_node_id = byte;
-             bava_handle->current_crc = bava_crc_update(bava_handle->current_crc, byte);
-             if (bava_handle->is_bava_bus && (bava_handle->node_id == bava_handle->rx_node_id || bava_handle->rx_node_id == BAVA_BROADCAST_NODE_ID)) {
-                 bava_handle->rx_state = BAVA_STATE_READ_SENDER_ID;
-             } else {
+                 // Fail-fast mismatch: instantly reject invalid commands
                  bava_handle->rx_state = BAVA_STATE_WAIT_ZERO;
              }
-             break;
-        
-        case BAVA_STATE_READ_SENDER_ID:
-             bava_handle->rx_sender_id = byte;
-             // Explicitly accept valid node ID or broadcast ID (0xFF) as sender
-             bava_handle->rx_state = BAVA_STATE_READ_ID;
              bava_handle->current_crc = bava_crc_update(bava_handle->current_crc, byte);
              break;
 

@@ -10,14 +10,10 @@ void bava_init(bava_handle_t* bava_handle, bava_tx_cb_t bava_tx_callback)
 {
     memset(bava_handle, 0, sizeof(bava_handle_t));
     bava_handle->tx_callback = bava_tx_callback;
-    bava_handle->bava_bus_tx_callback = NULL;
-    bava_handle->is_bava_bus = false;
     bava_handle->rx_state = BAVA_STATE_WAIT_OVERHEAD;
 
 #ifdef ESP_PLATFORM
     bava_handle->tx_mutex = xSemaphoreCreateMutexStatic(&bava_handle->tx_mutex_buffer);
-    portMUX_TYPE mux = portMUX_INITIALIZER_UNLOCKED;
-    bava_handle->rx_mux = mux;
 #elif defined(USE_HAL_DRIVER) && defined(osCMSIS)
     const osMutexAttr_t tx_mutex_attr = { "bava_tx_mutex", osMutexPrioInherit, NULL, 0U };
     bava_handle->tx_mutex = osMutexNew(&tx_mutex_attr);
@@ -34,14 +30,6 @@ void bava_init(bava_handle_t* bava_handle, bava_tx_cb_t bava_tx_callback)
 #endif
 }
 
-
-void bava_bus_init(bava_handle_t* bava_handle, bava_bus_tx_cb_t bava_bus_tx_callback, uint8_t node_id)
-{
-    bava_init(bava_handle, NULL);
-    bava_handle->bava_bus_tx_callback = bava_bus_tx_callback;
-    bava_handle->node_id = node_id;
-    bava_handle->is_bava_bus = true;
-}
 
 // Registering the variables with strict validation and access permissions
 bool bava_register_var(bava_handle_t* bava_handle, uint8_t id, void* variable_pointer, uint8_t variable_size, uint8_t permissions)
@@ -175,57 +163,38 @@ bava_status_t bava_internal_update(bava_handle_t* bava_handle, uint8_t id, const
                 return BAVA_STATUS_ERR_NOT_FOUND;
             }
 
-            // 3. Enter Critical Section
-        #ifdef ESP_PLATFORM
-            portENTER_CRITICAL_ISR(&(bava_handle->rx_mux));
-        #elif defined(USE_HAL_DRIVER) && defined(osCMSIS)
-            UBaseType_t uxSavedInterruptStatus = taskENTER_CRITICAL_FROM_ISR();
-        #elif defined(USE_HAL_DRIVER)
-            __disable_irq();
-        #elif defined(ARDUINO)
-            noInterrupts();
-        #elif defined(__ZEPHYR__)
-            unsigned int key = irq_lock();
-        #else
-            if (bava_handle->enter_critical != NULL) bava_handle->enter_critical();
-        #endif
-
-            // Safe memcpy to local aligned variables before endianness conversion
-            uint8_t type_flag = bava_handle->variables[i].permissions & BAVA_TYPE_MASK;
+            // 3. Update dictionary variable inside IRQ-disabled critical section to prevent data tearing
+            uint8_t type_flag = (uint8_t)(bava_handle->variables[i].permissions & BAVA_TYPE_MASK);
             if (type_flag == BAVA_TYPE_U16 && size == 2U)
             {
                 uint16_t temp_val;
                 memcpy(&temp_val, payload, sizeof(temp_val));
                 temp_val = bava_ntohs(temp_val);
+
+                BAVA_DISABLE_IRQ();
                 memcpy(bava_handle->variables[i].var_ptr, &temp_val, sizeof(temp_val));
+                bava_handle->variables[i].updated = true;
+                BAVA_ENABLE_IRQ();
             }
             else if (type_flag == BAVA_TYPE_U32 && size == 4U)
             {
                 uint32_t temp_val;
                 memcpy(&temp_val, payload, sizeof(temp_val));
                 temp_val = bava_ntohl(temp_val);
+
+                BAVA_DISABLE_IRQ();
                 memcpy(bava_handle->variables[i].var_ptr, &temp_val, sizeof(temp_val));
+                bava_handle->variables[i].updated = true;
+                BAVA_ENABLE_IRQ();
             }
             else
             {
+                BAVA_DISABLE_IRQ();
                 memcpy(bava_handle->variables[i].var_ptr, payload, (size_t)size);
+                bava_handle->variables[i].updated = true;
+                BAVA_ENABLE_IRQ();
             }
 
-            bava_handle->variables[i].updated = true;
-            
-        #ifdef ESP_PLATFORM
-            portEXIT_CRITICAL_ISR(&(bava_handle->rx_mux));
-        #elif defined(USE_HAL_DRIVER) && defined(osCMSIS)
-            taskEXIT_CRITICAL_FROM_ISR(uxSavedInterruptStatus);
-        #elif defined(USE_HAL_DRIVER)
-            __enable_irq();
-        #elif defined(ARDUINO)
-            interrupts();
-        #elif defined(__ZEPHYR__)
-            irq_unlock(key);
-        #else
-            if (bava_handle->exit_critical != NULL) bava_handle->exit_critical();
-        #endif
             return BAVA_STATUS_OK;
         }
     }

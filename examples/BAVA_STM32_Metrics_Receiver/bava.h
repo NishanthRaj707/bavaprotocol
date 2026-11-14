@@ -74,14 +74,10 @@
     #define BAVA_ENABLE_IRQ()  do { } while(0)
 #endif
 
-// BAVA FRAME CONSTANTS
-#define BAVA_SYNC_BYTE1     0xAA
-#define BAVA_SYNC_BYTE2     0x55
-#define BAVA_ESCAPE_BYTE    0x7D
-#define BAVA_ESCAPE_MASK    0x20
-
 // CONFIGURATION
+#ifndef BAVA_MAX_VARIABLES
 #define BAVA_MAX_VARIABLES 32  // Maximum number of variables in the BAVA system
+#endif
 
 #ifndef BAVA_MAX_PAYLOAD
 #define BAVA_MAX_PAYLOAD 32 // Maximum payload size for the bava message
@@ -100,14 +96,6 @@
 #define BAVA_READ_RESP 0x81
 #define BAVA_WRITE 0x02 // Command to write/update the remote variable
 #define BAVA_WRITE_ACK 0x82 // Acknowledgement to the update
-
-
-// BAVA BUS COMMANDS
-#define BAVA_BUS_READ 0x11
-#define BAVA_BUS_WRITE 0x12
-#define BAVA_BUS_READ_RESP 0x71
-#define BAVA_BUS_WRITE_ACK 0x72
-#define BAVA_BROADCAST_NODE_ID 0xFF
 
 #ifdef __cplusplus
 extern "C" {
@@ -143,7 +131,6 @@ typedef void (*bava_error_cb_t)(uint8_t id, bava_status_t error);
 
 // BAVA TX CALLBACK user registers function to transmit framed bytes over any transport (UART, SPI, Wi-Fi, BLE, etc.)
 typedef void (*bava_tx_cb_t)(const uint8_t* data, uint16_t size);
-typedef void (*bava_bus_tx_cb_t)(const uint8_t* data, uint16_t size);
 typedef void (*bava_lock_cb_t)(void);
 
 // BAVA VARIABLE STORAGE STRUCTURE
@@ -167,8 +154,6 @@ typedef enum
     BAVA_STATE_WAIT_ZERO = 0,
     BAVA_STATE_WAIT_OVERHEAD,
     BAVA_STATE_READ_CMD,
-    BAVA_STATE_READ_NODE_ID,
-    BAVA_STATE_READ_SENDER_ID,
     BAVA_STATE_READ_ID,
     BAVA_STATE_READ_LEN,
     BAVA_STATE_READ_PAYLOAD,
@@ -181,16 +166,11 @@ typedef enum
 typedef struct 
 {
     bava_tx_cb_t tx_callback;  // user defined function to transmit data
-    bava_bus_tx_cb_t bava_bus_tx_callback; //user defined function to transmit data in the bus network
     bava_dict_entry_t variables[BAVA_MAX_VARIABLES]; // Collection of variables stored
-    uint8_t node_id;
     uint8_t var_count;
-    bool is_bava_bus;
     // Rx State Machine tracking
     volatile bava_rx_state_t rx_state;
     uint8_t rx_cmd;
-    uint8_t rx_node_id;
-    uint8_t rx_sender_id;
     uint8_t rx_id;
     uint8_t rx_len;
     uint8_t rx_idx;                 // Tracks bytes read into the payload buffer
@@ -225,7 +205,6 @@ typedef struct
 #ifdef ESP_PLATFORM
     SemaphoreHandle_t tx_mutex;        // For bava_send_write
     StaticSemaphore_t tx_mutex_buffer; // Static storage for zero-heap FreeRTOS mutex
-    portMUX_TYPE rx_mux;               // Spinlock for the RX critical section
 #elif defined(USE_HAL_DRIVER) && defined(osCMSIS)
     osMutexId_t tx_mutex;       // STM32 CMSIS-RTOS Mutex
 #elif defined(__ZEPHYR__)
@@ -285,18 +264,8 @@ bava_status_t bava_send_read(bava_handle_t* bava_handle, uint8_t id);
 bool bava_var_updated(bava_handle_t* bava_handle, uint8_t id);
 void bava_var_clear_update_status(bava_handle_t* bava_handle, uint8_t id);
 
-// Bus related functions
-void bava_bus_init(bava_handle_t* bava_handle, bava_bus_tx_cb_t bava_bus_tx_callback, uint8_t node_id);
-bava_status_t bava_bus_send_read(bava_handle_t* bava_handle, uint8_t id, uint8_t receiver_id);
-bava_status_t bava_bus_send_write(bava_handle_t* bava_handle, uint8_t id, uint8_t receiver_id);
-bava_status_t bava_bus_send_raw_write(bava_handle_t* bava_handle, uint8_t id, const uint8_t* pointer, uint8_t len, uint8_t receiver_id);
-bava_status_t bava_bus_broadcast_write(bava_handle_t* bava_handle, uint8_t id);
-bava_status_t bava_bus_broadcast_raw_write(bava_handle_t* bava_handle, uint8_t id, const uint8_t* pointer, uint8_t len);
-
 // Checksum functions
 uint16_t bava_crc_update(uint16_t crc, uint8_t data);
-uint16_t bava_calculate_crc(uint8_t cmd, uint8_t id, uint8_t len, const uint8_t *payload);
-uint16_t bava_calculate_bus_crc(uint8_t cmd, uint8_t target_id, uint8_t sender_id, uint8_t id, uint8_t len, const uint8_t *payload);
 
 // Internal variable update
 bava_status_t bava_internal_update(bava_handle_t* bava_handle, uint8_t id, const uint8_t* payload, uint8_t size);
@@ -304,8 +273,6 @@ bava_status_t bava_internal_update(bava_handle_t* bava_handle, uint8_t id, const
 // Command / ACK responses
 void bava_cmd_write_ack(bava_handle_t* bava_handle, uint8_t id, bava_status_t status);
 void bava_cmd_read_request(bava_handle_t* bava_handle, uint8_t id);
-void bava_bus_cmd_write_ack(bava_handle_t* bava_handle, uint8_t id, uint8_t receiver_id);
-void bava_bus_cmd_read_request(bava_handle_t* bava_handle, uint8_t id, uint8_t receiver_id);
 
 #ifdef __cplusplus
 }

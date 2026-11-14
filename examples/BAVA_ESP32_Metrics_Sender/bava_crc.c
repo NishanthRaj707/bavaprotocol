@@ -26,31 +26,3 @@ uint16_t bava_crc_update(uint16_t crc, uint8_t data) {
     
     return crc;
 }
-
-uint16_t bava_calculate_crc(uint8_t cmd, uint8_t id, uint8_t len, const uint8_t *payload) {
-    uint16_t crc = 0xFFFFU;
-    crc = bava_crc_update(crc, cmd);
-    crc = bava_crc_update(crc, id);
-    crc = bava_crc_update(crc, len);
-    if (payload != NULL) {
-        for (uint8_t i = 0U; i < len; i++) {
-            crc = bava_crc_update(crc, payload[i]);
-        }
-    }
-    return crc;
-}
-
-uint16_t bava_calculate_bus_crc(uint8_t cmd, uint8_t target_id, uint8_t sender_id, uint8_t id, uint8_t len, const uint8_t *payload) {
-    uint16_t crc = 0xFFFFU;
-    crc = bava_crc_update(crc, cmd);
-    crc = bava_crc_update(crc, target_id);
-    crc = bava_crc_update(crc, sender_id);
-    crc = bava_crc_update(crc, id);
-    crc = bava_crc_update(crc, len);
-    if (payload != NULL) {
-        for (uint8_t i = 0U; i < len; i++) {
-            crc = bava_crc_update(crc, payload[i]);
-        }
-    }
-    return crc;
-}
