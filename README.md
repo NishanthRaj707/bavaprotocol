@@ -311,31 +311,6 @@ The decoded frame is `N + 5` bytes. COBS adds one code byte for any decoded leng
 
 The wire size depends only on `N`. It does not depend on the byte values in the payload.
 
-### Worked examples
-
-WRITE of identifier `0x01` with the one-byte payload `0x2A`:
-
-```text
-Decoded:  02 01 01 2A 81 E8
-Wire:     07 02 01 01 2A 81 E8 00
-```
-
-WRITE of identifier `0x02` with the payload `00 10 00 FF` (contains zero bytes):
-
-```text
-Decoded:  02 02 04 00 10 00 FF F8 CE
-Wire:     04 02 02 04 02 10 04 FF F8 CE 00
-```
-
-READ of identifier `0x01` (no payload):
-
-```text
-Decoded:  01 01 00 9D C8
-Wire:     03 01 01 03 9D C8 00
-```
-
-The CRC values are transmitted low byte first.
-
 ### Receive rules
 
 The receiver accumulates bytes until it sees `0x00`, then decodes and validates the frame. A frame is discarded, and no memory is modified, if any of the following holds:
@@ -422,23 +397,6 @@ bavaprotocol/
 │   └── zephyr_demo/
 └── LICENSE               GNU General Public License v3
 ```
-
----
-
-## Migrating from v1
-
-v2 changes the framing and is **not wire-compatible** with v1. Both nodes on a link must run the same major version.
-
-| Item | v1 | v2 |
-| :--- | :--- | :--- |
-| Frame start | `0xAA 0x55` preamble | None |
-| Frame end | Length field | `0x00` delimiter |
-| Escaping | `0x7D` stuffing, `0xAA` and `0x7D` escaped | COBS |
-| Worst-case encoding overhead | Up to one extra byte per frame byte | 1 code byte for `N` up to 254 |
-| Resynchronization | Search for `0xAA 0x55` | Search for `0x00` |
-| Frame fields, CRC, command codes, API | Unchanged | Unchanged |
-
-The public API is unchanged. Applications recompile against v2 without source changes.
 
 ---
 
