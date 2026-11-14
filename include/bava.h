@@ -2,19 +2,39 @@
 #define BAVA_H
 
 #ifdef ESP_PLATFORM
+    #if defined(ARDUINO) && __has_include(<Arduino.h>)
+    #include <Arduino.h>
+    #endif
     #include "freertos/FreeRTOS.h"
     #include "freertos/semphr.h"
     #include "freertos/task.h"
 #elif defined(USE_HAL_DRIVER) && defined(osCMSIS) 
     #include "cmsis_os.h" 
 #elif defined(ARDUINO)
+    #if __has_include(<Arduino.h>)
     #include <Arduino.h>
-    #include <stdatomic.h>
+    #endif
+    #if defined(__cplusplus)
+        #include <atomic>
+        using std::atomic_flag;
+    #else
+        #include <stdatomic.h>
+    #endif 
 #elif defined(__ZEPHYR__)
     #include <zephyr/kernel.h>
-    #include <stdatomic.h>
+    #if defined(__cplusplus)
+        #include <atomic>
+        using std::atomic_flag;
+    #else
+        #include <stdatomic.h>
+    #endif
 #else
-    #include <stdatomic.h>
+    #if defined(__cplusplus)
+        #include <atomic>
+        using std::atomic_flag;
+    #else
+        #include <stdatomic.h>
+    #endif
 #endif
 
 #include <stdint.h>
@@ -23,12 +43,16 @@
 
 // CROSS-PLATFORM INTERRUPT CONTROL MACROS
 #if defined(ESP_PLATFORM)
-    #define BAVA_DISABLE_IRQ() portENTER_CRITICAL()
-    #define BAVA_ENABLE_IRQ()  portEXIT_CRITICAL()
-#elif defined(__ZEPHYR__)
-    extern unsigned int bava_zephyr_irq_key;
-    #define BAVA_DISABLE_IRQ() do { bava_zephyr_irq_key = irq_lock(); } while(0)
-    #define BAVA_ENABLE_IRQ()  do { irq_unlock(bava_zephyr_irq_key); } while(0)
+    #if defined(ARDUINO)
+        #define BAVA_DISABLE_IRQ() noInterrupts()
+        #define BAVA_ENABLE_IRQ()  interrupts()
+    #else
+        #define BAVA_DISABLE_IRQ() portDISABLE_INTERRUPTS()
+        #define BAVA_ENABLE_IRQ()  portENABLE_INTERRUPTS()
+    #endif
+#elif defined(__arm__) || defined(__ARM_ARCH) || defined(USE_HAL_DRIVER) || defined(osCMSIS) || defined(ARDUINO_ARCH_STM32)
+    #define BAVA_DISABLE_IRQ() __disable_irq()
+    #define BAVA_ENABLE_IRQ()  __enable_irq()
 #elif defined(ARDUINO)
     #if defined(__AVR__)
         #define BAVA_DISABLE_IRQ() cli()
@@ -37,13 +61,14 @@
         #define BAVA_DISABLE_IRQ() noInterrupts()
         #define BAVA_ENABLE_IRQ()  interrupts()
     #endif
+#elif defined(__ZEPHYR__)
+    extern unsigned int bava_zephyr_irq_key;
+    #define BAVA_DISABLE_IRQ() do { bava_zephyr_irq_key = irq_lock(); } while(0)
+    #define BAVA_ENABLE_IRQ()  do { irq_unlock(bava_zephyr_irq_key); } while(0)
 #elif defined(__AVR__)
     #include <avr/interrupt.h>
     #define BAVA_DISABLE_IRQ() cli()
     #define BAVA_ENABLE_IRQ()  sei()
-#elif defined(USE_HAL_DRIVER) || defined(__ARM_ARCH) || defined(__arm__) || defined(osCMSIS)
-    #define BAVA_DISABLE_IRQ() __disable_irq()
-    #define BAVA_ENABLE_IRQ()  __enable_irq()
 #else
     #define BAVA_DISABLE_IRQ() do { } while(0)
     #define BAVA_ENABLE_IRQ()  do { } while(0)
@@ -84,6 +109,10 @@
 #define BAVA_BUS_WRITE_ACK 0x72
 #define BAVA_BROADCAST_NODE_ID 0xFF
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // BAVA STATUS / ERROR CODES
 typedef enum
 {
@@ -102,6 +131,12 @@ typedef enum
 // PERMISSION FLAGS
 #define BAVA_PERM_READ_ONLY   0x01U
 #define BAVA_PERM_READ_WRITE  0x02U
+
+// Type metadata flags for multi-byte endianness conversion (bits 4..7)
+#define BAVA_TYPE_RAW         0x00U
+#define BAVA_TYPE_U16         0x10U
+#define BAVA_TYPE_U32         0x20U
+#define BAVA_TYPE_MASK        0xF0U
 
 // Define the Error Callback function signature
 typedef void (*bava_error_cb_t)(uint8_t id, bava_status_t error);
@@ -125,7 +160,7 @@ typedef bava_dict_entry_t bava_var_t;
 
 // BAVA MESSAGE STRUCTURE
 #define BAVA_RAW_FRAME_MAX_SIZE   (BAVA_MAX_PAYLOAD + 7U)
-#define BAVA_COBS_FRAME_MAX_SIZE  (BAVA_RAW_FRAME_MAX_SIZE + 2U)
+#define BAVA_COBS_FRAME_MAX_SIZE  (BAVA_RAW_FRAME_MAX_SIZE + (BAVA_RAW_FRAME_MAX_SIZE / 254U) + 2U)
 
 typedef enum
 {
@@ -188,8 +223,9 @@ typedef struct
     
 
 #ifdef ESP_PLATFORM
-    SemaphoreHandle_t tx_mutex; // For bava_send_write
-    portMUX_TYPE rx_mux;        // Spinlock for the RX critical section
+    SemaphoreHandle_t tx_mutex;        // For bava_send_write
+    StaticSemaphore_t tx_mutex_buffer; // Static storage for zero-heap FreeRTOS mutex
+    portMUX_TYPE rx_mux;               // Spinlock for the RX critical section
 #elif defined(USE_HAL_DRIVER) && defined(osCMSIS)
     osMutexId_t tx_mutex;       // STM32 CMSIS-RTOS Mutex
 #elif defined(__ZEPHYR__)
@@ -208,16 +244,27 @@ typedef struct
 } bava_handle_t;
 
 // PORTABLE ENDIANNESS HELPERS (Directive 6: No POSIX socket dependence)
+#if (defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)) || \
+    defined(__BIG_ENDIAN__) || defined(_BIG_ENDIAN)
 static inline uint16_t bava_htons(uint16_t val) {
-    return (uint16_t)((val << 8) | (val >> 8));
+    return val;
 }
 
 static inline uint32_t bava_htonl(uint32_t val) {
-    return ((val << 24) & 0xFF000000UL) |
-           ((val <<  8) & 0x00FF0000UL) |
-           ((val >>  8) & 0x0000FF00UL) |
-           ((val >> 24) & 0x000000FFUL);
+    return val;
 }
+#else
+static inline uint16_t bava_htons(uint16_t val) {
+    return (uint16_t)(((uint16_t)(val << 8U)) | ((uint16_t)(val >> 8U)));
+}
+
+static inline uint32_t bava_htonl(uint32_t val) {
+    return (uint32_t)((((uint32_t)val << 24U) & 0xFF000000UL) |
+                      (((uint32_t)val <<  8U) & 0x00FF0000UL) |
+                      (((uint32_t)val >>  8U) & 0x0000FF00UL) |
+                      (((uint32_t)val >> 24U) & 0x000000FFUL));
+}
+#endif
 
 #define bava_ntohs(x) bava_htons(x)
 #define bava_ntohl(x) bava_htonl(x)
@@ -259,5 +306,9 @@ void bava_cmd_write_ack(bava_handle_t* bava_handle, uint8_t id, bava_status_t st
 void bava_cmd_read_request(bava_handle_t* bava_handle, uint8_t id);
 void bava_bus_cmd_write_ack(bava_handle_t* bava_handle, uint8_t id, uint8_t receiver_id);
 void bava_bus_cmd_read_request(bava_handle_t* bava_handle, uint8_t id, uint8_t receiver_id);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // BAVA_H

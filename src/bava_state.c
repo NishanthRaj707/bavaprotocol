@@ -68,7 +68,17 @@ void bava_process_byte(bava_handle_t* bava_handle, uint8_t rx_byte)
                     }
                     else if (bava_handle->rx_cmd == BAVA_READ_RESP || bava_handle->rx_cmd == BAVA_BUS_READ_RESP)
                     {
-                        (void)bava_internal_update(bava_handle, bava_handle->rx_id, bava_handle->rx_payload, bava_handle->rx_len);
+                        if (bava_handle->rx_len == 0U)
+                        {
+                            if (bava_handle->error_callback != NULL)
+                            {
+                                bava_handle->error_callback(bava_handle->rx_id, BAVA_STATUS_ERR_NOT_FOUND);
+                            }
+                        }
+                        else
+                        {
+                            (void)bava_internal_update(bava_handle, bava_handle->rx_id, bava_handle->rx_payload, bava_handle->rx_len);
+                        }
                     }
                 }
             }
@@ -83,7 +93,7 @@ void bava_process_byte(bava_handle_t* bava_handle, uint8_t rx_byte)
     if (bava_handle->rx_state == BAVA_STATE_WAIT_OVERHEAD)
     {
         bava_handle->cobs_distance = rx_byte;
-        bava_handle->current_crc = 0xFFFF;
+        bava_handle->current_crc = 0xFFFFU;
         bava_handle->rx_state = BAVA_STATE_READ_CMD;
         bava_handle->start_time = bava_handle->current_time_ms;
         return;
@@ -189,7 +199,7 @@ void bava_process_byte(bava_handle_t* bava_handle, uint8_t rx_byte)
              break;
         
         case BAVA_STATE_READ_CRC2:
-             bava_handle->incoming_crc |= ((uint16_t)byte << 8);
+             bava_handle->incoming_crc |= (uint16_t)((uint16_t)byte << 8U);
              bava_handle->rx_state = BAVA_STATE_VERIFY_DELIMITER;
              break;
 

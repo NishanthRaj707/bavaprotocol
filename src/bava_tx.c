@@ -65,35 +65,35 @@ static size_t tx_cobs_encode(bava_handle_t* bava_handle, size_t raw_length)
     uint8_t* src = bava_handle->tx_buffer;
     uint8_t* dest = bava_handle->cobs_buffer;
 
-    size_t read_idx = 0;
-    size_t write_idx = 1;
-    size_t code = 1;
-    size_t code_idx = 0;
+    size_t read_idx = 0U;
+    size_t write_idx = 1U;
+    size_t code = 1U;
+    size_t code_idx = 0U;
 
     while(read_idx < raw_length)
     {
-        if(src[read_idx] == 0x00)
+        if(src[read_idx] == 0x00U)
         {
-             dest[code_idx] = code;
-             code = 1;
+             dest[code_idx] = (uint8_t)code;
+             code = 1U;
              code_idx = write_idx++;
         }
         else{
             dest[write_idx++] = src[read_idx];
             code++;
             
-            if(code == 0xFF)
+            if(code == 0xFFU)
             {
-                dest[code_idx] = code;
-                code = 1;
+                dest[code_idx] = (uint8_t)code;
+                code = 1U;
                 code_idx = write_idx++;
             }
         }
 
         read_idx++;
     }
-    dest[code_idx] = code;
-    dest[write_idx++] = 0x00;
+    dest[code_idx] = (uint8_t)code;
+    dest[write_idx++] = 0x00U;
 
     return write_idx;
 }
@@ -139,48 +139,26 @@ static bava_status_t bava_internal_send_packet(bava_handle_t *bava_handle, uint8
     }
     bava_handle->tx_buffer[tx_idx++] = id;
 
-    uint8_t payload_size = (len > BAVA_MAX_PAYLOAD) ? BAVA_MAX_PAYLOAD : len;
+    // Validate that if payload == NULL, payload_size is forced to 0 (fixes BUG-H07)
+    uint8_t payload_size = (payload == NULL) ? 0U : ((len > BAVA_MAX_PAYLOAD) ? BAVA_MAX_PAYLOAD : len);
     bava_handle->tx_buffer[tx_idx++] = payload_size;
 
-    // Endianness handling and payload formatting safely inside locked region
-    if (payload_size > 0 && payload != NULL)
+    if (payload_size > 0U && payload != NULL)
     {
-        uint8_t formatted_payload[BAVA_MAX_PAYLOAD];
-
-        // Automatically convert 16-bit and 32-bit integer/float values to network byte order
-        if (payload_size == 2)
+        for (uint8_t i = 0U; i < payload_size; i++)
         {
-            uint16_t temp_val;
-            memcpy(&temp_val, payload, sizeof(temp_val));
-            temp_val = bava_htons(temp_val);
-            memcpy(formatted_payload, &temp_val, sizeof(temp_val));
-        }
-        else if (payload_size == 4)
-        {
-            uint32_t temp_val;
-            memcpy(&temp_val, payload, sizeof(temp_val));
-            temp_val = bava_htonl(temp_val);
-            memcpy(formatted_payload, &temp_val, sizeof(temp_val));
-        }
-        else
-        {
-            memcpy(formatted_payload, payload, payload_size);
-        }
-
-        for (uint8_t i = 0; i < payload_size; i++)
-        {
-            bava_handle->tx_buffer[tx_idx++] = formatted_payload[i];
+            bava_handle->tx_buffer[tx_idx++] = payload[i];
         }
         
         uint16_t crc;
         if (is_bus_cmd) {
-            crc = bava_calculate_bus_crc(cmd, target_node_id, bava_handle->node_id, id, payload_size, formatted_payload);
+            crc = bava_calculate_bus_crc(cmd, target_node_id, bava_handle->node_id, id, payload_size, payload);
         } else {
-            crc = bava_calculate_crc(cmd, id, payload_size, formatted_payload);
+            crc = bava_calculate_crc(cmd, id, payload_size, payload);
         }
 
-        uint8_t crc_low = (uint8_t)(crc & 0xFF);
-        uint8_t crc_high = (uint8_t)((crc >> 8) & 0xFF);
+        uint8_t crc_low = (uint8_t)(crc & 0xFFU);
+        uint8_t crc_high = (uint8_t)((crc >> 8U) & 0xFFU);
 
         bava_handle->tx_buffer[tx_idx++] = crc_low;
         bava_handle->tx_buffer[tx_idx++] = crc_high;
@@ -189,13 +167,13 @@ static bava_status_t bava_internal_send_packet(bava_handle_t *bava_handle, uint8
     {
         uint16_t crc;
         if (is_bus_cmd) {
-            crc = bava_calculate_bus_crc(cmd, target_node_id, bava_handle->node_id, id, 0, NULL);
+            crc = bava_calculate_bus_crc(cmd, target_node_id, bava_handle->node_id, id, 0U, NULL);
         } else {
-            crc = bava_calculate_crc(cmd, id, 0, NULL);
+            crc = bava_calculate_crc(cmd, id, 0U, NULL);
         }
 
-        uint8_t crc_low = (uint8_t)(crc & 0xFF);
-        uint8_t crc_high = (uint8_t)((crc >> 8) & 0xFF);
+        uint8_t crc_low = (uint8_t)(crc & 0xFFU);
+        uint8_t crc_high = (uint8_t)((crc >> 8U) & 0xFFU);
 
         bava_handle->tx_buffer[tx_idx++] = crc_low;
         bava_handle->tx_buffer[tx_idx++] = crc_high;
@@ -377,10 +355,28 @@ bava_status_t bava_send_write(bava_handle_t* bava_handle, uint8_t id)
     {
         if (bava_handle->variables[i].id == id)
         {
-            const uint8_t* payload = (const uint8_t *)bava_handle->variables[i].var_ptr;
             uint8_t len = bava_handle->variables[i].size;
+            uint8_t type_flag = (uint8_t)(bava_handle->variables[i].permissions & BAVA_TYPE_MASK);
 
-            return bava_internal_send_packet(bava_handle, BAVA_WRITE, 0, id, payload, len);
+            if (type_flag == BAVA_TYPE_U16 && len == 2U)
+            {
+                uint16_t temp_val;
+                memcpy(&temp_val, bava_handle->variables[i].var_ptr, sizeof(temp_val));
+                temp_val = bava_htons(temp_val);
+                return bava_internal_send_packet(bava_handle, BAVA_WRITE, 0U, id, (const uint8_t*)&temp_val, len);
+            }
+            else if (type_flag == BAVA_TYPE_U32 && len == 4U)
+            {
+                uint32_t temp_val;
+                memcpy(&temp_val, bava_handle->variables[i].var_ptr, sizeof(temp_val));
+                temp_val = bava_htonl(temp_val);
+                return bava_internal_send_packet(bava_handle, BAVA_WRITE, 0U, id, (const uint8_t*)&temp_val, len);
+            }
+            else
+            {
+                const uint8_t* payload = (const uint8_t *)bava_handle->variables[i].var_ptr;
+                return bava_internal_send_packet(bava_handle, BAVA_WRITE, 0U, id, payload, len);
+            }
         }
     }
 
@@ -441,17 +437,39 @@ void bava_cmd_read_request(bava_handle_t* bava_handle, uint8_t id)
     {
         if (bava_handle->variables[i].id == id)
         {
-            const uint8_t* payload = (const uint8_t *)bava_handle->variables[i].var_ptr;
             uint8_t len = bava_handle->variables[i].size;
-            (void)bava_internal_send_packet(bava_handle, BAVA_READ_RESP, 0, id, payload, len);
+            uint8_t type_flag = (uint8_t)(bava_handle->variables[i].permissions & BAVA_TYPE_MASK);
+
+            if (type_flag == BAVA_TYPE_U16 && len == 2U)
+            {
+                uint16_t temp_val;
+                memcpy(&temp_val, bava_handle->variables[i].var_ptr, sizeof(temp_val));
+                temp_val = bava_htons(temp_val);
+                (void)bava_internal_send_packet(bava_handle, BAVA_READ_RESP, 0U, id, (const uint8_t*)&temp_val, len);
+            }
+            else if (type_flag == BAVA_TYPE_U32 && len == 4U)
+            {
+                uint32_t temp_val;
+                memcpy(&temp_val, bava_handle->variables[i].var_ptr, sizeof(temp_val));
+                temp_val = bava_htonl(temp_val);
+                (void)bava_internal_send_packet(bava_handle, BAVA_READ_RESP, 0U, id, (const uint8_t*)&temp_val, len);
+            }
+            else
+            {
+                const uint8_t* payload = (const uint8_t *)bava_handle->variables[i].var_ptr;
+                (void)bava_internal_send_packet(bava_handle, BAVA_READ_RESP, 0U, id, payload, len);
+            }
             return;
         }
     }
+
+    // ID not found in dictionary (fixes BUG-H06): transmit empty READ_RESP (len = 0) so remote fails fast
+    (void)bava_internal_send_packet(bava_handle, BAVA_READ_RESP, 0U, id, NULL, 0U);
 }
 
 void bava_bus_cmd_write_ack(bava_handle_t* bava_handle, uint8_t id, uint8_t receiver_id)
 {
-    (void)bava_internal_send_packet(bava_handle, BAVA_BUS_WRITE_ACK, receiver_id, id, NULL, 0);
+    (void)bava_internal_send_packet(bava_handle, BAVA_BUS_WRITE_ACK, receiver_id, id, NULL, 0U);
 }
 
 void bava_bus_cmd_read_request(bava_handle_t* bava_handle, uint8_t id, uint8_t receiver_id)
@@ -465,12 +483,34 @@ void bava_bus_cmd_read_request(bava_handle_t* bava_handle, uint8_t id, uint8_t r
     {
         if (bava_handle->variables[i].id == id)
         {
-            const uint8_t* payload = (const uint8_t *)bava_handle->variables[i].var_ptr;
             uint8_t len = bava_handle->variables[i].size;
-            (void)bava_internal_send_packet(bava_handle, BAVA_BUS_READ_RESP, receiver_id, id, payload, len);
+            uint8_t type_flag = (uint8_t)(bava_handle->variables[i].permissions & BAVA_TYPE_MASK);
+
+            if (type_flag == BAVA_TYPE_U16 && len == 2U)
+            {
+                uint16_t temp_val;
+                memcpy(&temp_val, bava_handle->variables[i].var_ptr, sizeof(temp_val));
+                temp_val = bava_htons(temp_val);
+                (void)bava_internal_send_packet(bava_handle, BAVA_BUS_READ_RESP, receiver_id, id, (const uint8_t*)&temp_val, len);
+            }
+            else if (type_flag == BAVA_TYPE_U32 && len == 4U)
+            {
+                uint32_t temp_val;
+                memcpy(&temp_val, bava_handle->variables[i].var_ptr, sizeof(temp_val));
+                temp_val = bava_htonl(temp_val);
+                (void)bava_internal_send_packet(bava_handle, BAVA_BUS_READ_RESP, receiver_id, id, (const uint8_t*)&temp_val, len);
+            }
+            else
+            {
+                const uint8_t* payload = (const uint8_t *)bava_handle->variables[i].var_ptr;
+                (void)bava_internal_send_packet(bava_handle, BAVA_BUS_READ_RESP, receiver_id, id, payload, len);
+            }
             return;
         }
     }
+
+    // ID not found in bus dictionary (fixes BUG-H06): transmit empty BUS_READ_RESP (len = 0)
+    (void)bava_internal_send_packet(bava_handle, BAVA_BUS_READ_RESP, receiver_id, id, NULL, 0U);
 }
 
 bava_status_t bava_bus_send_write(bava_handle_t* bava_handle, uint8_t id, uint8_t receiver_id)

@@ -15,7 +15,7 @@ void bava_init(bava_handle_t* bava_handle, bava_tx_cb_t bava_tx_callback)
     bava_handle->rx_state = BAVA_STATE_WAIT_OVERHEAD;
 
 #ifdef ESP_PLATFORM
-    bava_handle->tx_mutex = xSemaphoreCreateMutex();
+    bava_handle->tx_mutex = xSemaphoreCreateMutexStatic(&bava_handle->tx_mutex_buffer);
     portMUX_TYPE mux = portMUX_INITIALIZER_UNLOCKED;
     bava_handle->rx_mux = mux;
 #elif defined(USE_HAL_DRIVER) && defined(osCMSIS)
@@ -191,14 +191,15 @@ bava_status_t bava_internal_update(bava_handle_t* bava_handle, uint8_t id, const
         #endif
 
             // Safe memcpy to local aligned variables before endianness conversion
-            if (size == 2U)
+            uint8_t type_flag = bava_handle->variables[i].permissions & BAVA_TYPE_MASK;
+            if (type_flag == BAVA_TYPE_U16 && size == 2U)
             {
                 uint16_t temp_val;
                 memcpy(&temp_val, payload, sizeof(temp_val));
                 temp_val = bava_ntohs(temp_val);
                 memcpy(bava_handle->variables[i].var_ptr, &temp_val, sizeof(temp_val));
             }
-            else if (size == 4U)
+            else if (type_flag == BAVA_TYPE_U32 && size == 4U)
             {
                 uint32_t temp_val;
                 memcpy(&temp_val, payload, sizeof(temp_val));
