@@ -75,24 +75,6 @@ The protocol implementation enforces five operational invariants:
 
 ---
 
-## Scope & Explicit Non-Goals
-
-BAVA is intentionally focused on predictable, deterministic point-to-point microcontroller links:
-
-- **Topology:** Point-to-point byte streams between two microcontrollers (e.g., UART, RS-232, RS-422, or serial wireless bridge).
-- **Dictionary Capacity:** Compile-time bounded up to 32 registered variables (`BAVA_MAX_VARIABLES = 32`).
-- **Payload Capacity:** Compile-time bounded up to 32 bytes per variable payload (`BAVA_MAX_PAYLOAD = 32`).
-- **Transaction Model:** Single outstanding transaction with stop-and-wait ACK semantics; transmit lock is held until peer acknowledgment or timeout.
-- **Wire Overhead:** Deterministic `N + 7` bytes on the wire for an $N$-byte payload.
-- **Explicit Non-Goals:**
-  - No multi-drop bus arbitration or multi-master collision handling.
-  - No dynamic memory allocation or unbounded variable-length streaming.
-  - No floating-point or text-based schema serialization (transfers raw native memory layouts).
-  - No packet fragmentation or multi-hop network routing.
-  - No cryptographic encryption or authentication (intended for direct board-to-board PCB/inter-chassis UART connections).
-
----
-
 ## Hardware Verification
 
 The protocol's zero-heap guarantee and fault-rejection characteristics have been empirically verified on physical microcontroller hardware:
